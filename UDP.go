@@ -38,7 +38,7 @@ func UDP_receive(port string,endroutine chan int){
 	addr,err:=net.ResolveUDPAddr("udp",port)
 	sock,_:=net.ListenUDP("udp",addr)
 	//sock.SetReadBuffer(1048576)
-	if err!=nil {
+	if err!=nil 
 		fmt.Println(err)
 	}
 	i:=0
@@ -72,7 +72,7 @@ func main(){
 	endroutine :=make(chan int)
 	
 	go UDP_send("255.255.255.255:20017",endroutine)
-	go UDP_receive(":20017",endroutine)
+	go UDP_receive(":20020",endroutine)
 	fmt.Println(<-endroutine)
 	fmt.Println(<-endroutine)
 	
