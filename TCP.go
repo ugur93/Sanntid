@@ -12,7 +12,7 @@ func main(){
 	fmt.Println("hello");
 	conn, err := net.Dial("tcp", ":33546")
 	if err != nil {
-        	//fmt.Println(err)
+        	fmt.Println(err)
 
 	}
 	connbuf := bufio.NewReader(conn)
