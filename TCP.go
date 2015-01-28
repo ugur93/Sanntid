@@ -3,32 +3,76 @@ package main
 import(
 	"fmt"
 	"net"
-	"bufio"
-
+	"time"
+	"os"
 )
+func MakeConnection(endroutine chan int){
+	tcpAddr, _ := net.ResolveTCPAddr("tcp", "129.241.187.145:20017")
+	l,_:=net.ListenTCP("tcp",tcpAddr)
+	conn,_:=l.AcceptTCP()
+	//endroutine<-1
+	handleRequest(conn,endroutine)
 
 
-func main(){
+
+}
+
+func main(){	
+	endroutine :=make(chan int)
+	
+	//serverAddr:="localhost:33546"
 	fmt.Println("hello");
-	conn, err := net.Dial("tcp", ":33546")
+
+	tcpAddr, err := net.ResolveTCPAddr("tcp", "129.241.187.136:33546")
 	if err != nil {
-        	fmt.Println(err)
+        	fmt.Println("ResolveTCP failed: ",err.Error())
+		os.Exit(1)
 
 	}
-	connbuf := bufio.NewReader(conn)
-	fmt.Fprintf(conn, "GET / HTTP/1.0\r\n\r\n")
-	for{
-	    str, err := connbuf.ReadString('\n')
-	    if len(str)>0 {
-		fmt.Println(str)
-	    }
-	    if err!= nil {
-		break
-	    }
+
+	conn,err:=net.DialTCP("tcp",nil,tcpAddr);
+
+	if err!=nil {
+		fmt.Println("Dial failed: ",err.Error());
+		os.Exit(1)
 	}
+
+	go MakeConnection(endroutine)
+	_,err = conn.Write([]byte("Connect to: 129.241.187.145:20017\x00"))
+	 if err != nil {
+		println("Write to server failed:", err.Error())
+		os.Exit(1)
+	} 
+	reply := make([]byte, 1024)
+	conn.Read(reply)
+	fmt.Println("Reply form server: ",string(reply))	 
+
+	<-endroutine
     
 
 
+
+
+}
+
+func handleRequest(conn net.Conn,endroutine chan int){
+
+	for{
+
+		strEcho :="Fak ye\x00"
+		_,err:=conn.Write([]byte(strEcho))
+		 if err != nil {
+			println("Write to server failed:", err.Error())
+			os.Exit(1)
+		 } 
+		fmt.Println("Write to server: ",strEcho)
+		reply := make([]byte, 1024)
+		conn.Read(reply)
+		 
+		fmt.Println("Reply form server: ",string(reply))
+		time.Sleep(time.Second)
+	}			
+	endroutine<-1
 
 
 }
