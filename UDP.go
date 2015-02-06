@@ -9,7 +9,7 @@ import(
 )
 
 
-const BroadcastAddr="129.241.187.255"
+const BroadcastAddr="78.91.75.205"
 const SendPort="20020"
 
 const ReadPort="20020"
@@ -23,11 +23,19 @@ type message struct {
 	RemoteAddr *net.UDPAddr
 }
 func UDP_send(addr string,send_ch chan message){
-	con,_:=net.Dial("udp4",addr);
+	con,err:=net.Dial("udp4",addr);
+	if err!=nil {
+		fmt.Println("Error dialing",err)
+	}
+
 	for{
 		msg:=<-send_ch
-		message,_:=json.Marshal(msg)
-		_,err:=con.Write([]byte(message))	
+		message,err:=json.Marshal(msg)
+		if err!=nil {
+			fmt.Println("error with Marshal")
+
+		}
+		_,err=con.Write([]byte(message))	
 		if(err!=nil){
 			fmt.Println(err)
 		}
@@ -53,6 +61,10 @@ func UDP_receive(port string,receive_ch chan message){
 			fmt.Println(err)
 		}
 		err=json.Unmarshal(buffer[:n],&msg)
+		if err!=nil {
+			fmt.Println(err);
+
+		}
 		msg.RemoteAddr=Raddr
 		
 		receive_ch<-msg
@@ -62,14 +74,15 @@ func UDP_receive(port string,receive_ch chan message){
 
 
 }
-func UDP_init(send_ch,receive_ch chan message){
+func UDP_init(port,broadcastAddr int, send_ch,receive_ch chan message){
+	
 	go UDP_send(BroadcastAddr+":"+SendPort,send_ch)
 	go UDP_receive(":"+ReadPort,receive_ch)
 	
 
 }
 func main(){
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	//runtime.GOMAXPROCS(runtime.NumCPU())
 	send_ch :=make(chan message,1024)
 	receive_ch :=make(chan message,1024)
 	UDP_init(send_ch,receive_ch)
