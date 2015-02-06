@@ -74,8 +74,8 @@ func UDP_receive(port string,receive_ch chan message){
 
 
 }
-func UDP_init(port,broadcastAddr int, send_ch,receive_ch chan message){
-	
+func UDP_init(send_ch,receive_ch chan message){
+
 	go UDP_send(BroadcastAddr+":"+SendPort,send_ch)
 	go UDP_receive(":"+ReadPort,receive_ch)
 	
