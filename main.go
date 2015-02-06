@@ -1,7 +1,7 @@
 package main
 	
 import "fmt"
-import "Projects/Sanntid/UDP";
+import "UDP";
 
 
 
