@@ -27,3 +27,40 @@ func set_motor_direction(DIRN int){
 
 
 }
+
+func get_obstruction_signal() (int) {
+	return IO_read_bit(OBSTRUCTION)
+
+}
+func get_stop_signal() (int) {
+	return IO_read_bit(STOP)
+}
+func set_stop_lamp(value int) {
+	if value {
+		IO_set_bit(LIGHT_STOP)
+	}else{
+		IO_clear_bit(LIGHT_STOP)
+	}
+}
+func get_floor_sensor_signal() int {
+	if IO_read_bit(SENSOR_FLOOR1) {
+		return 0
+	}else if IO_read_bit(SENSOR_FLOOR2) {
+		return 1
+	}else if IO_read_bit(SENSOR_FLOOR3) {
+		return 2
+	}else if IO_read_bit(SENSOR_FLOOR4) {
+		return 3
+	}else {
+		return -1
+	}
+}
+
+func set_floor_indicator(floor int) {
+
+	if floor & 0x02 {
+		IO_set_bit(LIGHT_FLOOR_IND1)
+	} else {
+		IO_clear_bit(LIGHT_FLOOR_IND1)
+	}
+}
