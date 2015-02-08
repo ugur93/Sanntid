@@ -11,7 +11,6 @@ import(
 
 const BroadcastAddr="78.91.75.205"
 const SendPort="20020"
-
 const ReadPort="20020"
 
 
@@ -25,28 +24,23 @@ type message struct {
 func UDP_send(addr string,send_ch chan message){
 	con,err:=net.Dial("udp4",addr);
 	if err!=nil {
-		fmt.Println("Error dialing",err)
+		fmt.Println("Error Dial",err)
 	}
-
 	for{
 		msg:=<-send_ch
 		message,err:=json.Marshal(msg)
 		if err!=nil {
-			fmt.Println("error with Marshal")
-
+			fmt.Println("Error with Marshal: ",err)
 		}
 		_,err=con.Write([]byte(message))	
 		if(err!=nil){
-			fmt.Println(err)
+			fmt.Println("Error with Write: ",err)
 		}
-		time.Sleep(1000*time.Millisecond)
+		time.Sleep(100*time.Millisecond)
 	}	
-
-
-
 }
-func UDP_receive(port string,receive_ch chan message){
 
+func UDP_receive(port string,receive_ch chan message){
 	addr,err:=net.ResolveUDPAddr("udp",port)
 	sock,_:=net.ListenUDP("udp",addr)
 	if err!=nil {
@@ -56,31 +50,28 @@ func UDP_receive(port string,receive_ch chan message){
 		msg:=message{}
 		buffer:=make([]byte,1024)
 		n,Raddr,err:=sock.ReadFromUDP(buffer)
-		//fmt.Println(string(buffer))
 		if err!=nil{
 			fmt.Println(err)
 		}
 		err=json.Unmarshal(buffer[:n],&msg)
 		if err!=nil {
 			fmt.Println(err);
-
 		}
 		msg.RemoteAddr=Raddr
 		
 		receive_ch<-msg
 		
-		time.Sleep(1000*time.Millisecond)
+		time.Sleep(100*time.Millisecond)
 	}
-
-
 }
+
 func UDP_init(send_ch,receive_ch chan message){
 
 	go UDP_send(BroadcastAddr+":"+SendPort,send_ch)
 	go UDP_receive(":"+ReadPort,receive_ch)
-	
-
 }
+
+
 func main(){
 	//runtime.GOMAXPROCS(runtime.NumCPU())
 	send_ch :=make(chan message,1024)
@@ -100,10 +91,5 @@ func main(){
 			fmt.Println("-------------------------------------------")
 		}
 	}
-
-	
-	
-
-
 }
 
