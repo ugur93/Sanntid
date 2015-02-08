@@ -1,7 +1,7 @@
 package main
 	
 import "fmt"
-import "UDP";
+import "github.com/ugur93/Sanntid"
 
 
 
