@@ -1,7 +1,7 @@
 package driver
 
 import(
-	"fmt"
+	//"fmt"
 
 )
 
@@ -14,9 +14,7 @@ const (
 
 )
 func Driver_init(){
-	if !IO_init() {
-		fmt.Println("Could not initialize IO module")	
-	}
+	IO_init()
 
 
 }
