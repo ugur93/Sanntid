@@ -9,13 +9,12 @@ import(
 const N_BUTTONS=3
 
 
-button_array=[][]int({BUTTON_UP1,BUTTON_DOWN1,BUTTON_COMMAND1},
-	{BUTTON_UP2,BUTTON_DOWN2,BUTTON_COMMAND2},
-	{BUTTON_UP3,BUTTON_DOWN3,BUTTON_COMMAND3})
+var button_array =[][] int{{BUTTON_UP1,BUTTON_UP2,BUTTON_UP3},
+{BUTTON_DOWN1,BUTTON_DOWN2,BUTTON_DOWN3},{BUTTON_COMMAND1,BUTTON_COMMAND2,BUTTON_COMMAND3,BUTTON_COMMAND4}}
 
-lamp_array=[][]int({LAMP_UP1,LAMP_DOWN1,LAMP_COMMAND1},
-	{LAMP_UP2,LAMP_DOWN2,LAMP_COMMAND2},
-	{LAMP_UP3,LAMP_DOWN3,LAMP_COMMAND3})
+var lamp_array =[][]int{{LIGHT_UP1,LIGHT_UP2,LIGHT_UP3},
+	{LIGHT_DOWN1,LIGHT_DOWN2,LIGHT_DOWN3},
+	{LIGHT_COMMAND1,LIGHT_COMMAND2,LIGHT_COMMAND3,LIGHT_COMMAND4}}
 
 const(
 	BUTTON_CALL_UP int =0
@@ -33,7 +32,14 @@ func Driver_init(){
 	if !IO_init() {
 		fmt.Println("Could not initialize IO module")	
 	}
+	for i:=0; i<4; i++ {
+		if i < 3 {
+			Set_button_lamp(0,i,0)
+			Set_button_lamp(1,i,0)
+		}
+		Set_button_lamp(2,i,0)
 	
+	}
 	Set_stop_lamp(0)
 	Set_door_lamp(0)
 	Set_floor_indicator(0)
@@ -72,8 +78,9 @@ func Set_stop_lamp(value int) {
 func Set_door_lamp(value int){
 	if value==1 {
 		IO_set_bit(LIGHT_DOOR_OPEN)
-	}else 
+	}else{
 		IO_clear_bit(LIGHT_DOOR_OPEN)
+	}
 }
 func Get_floor_sensor_signal() int {
 	if IO_read_bit(SENSOR_FLOOR1)==1 {
@@ -91,12 +98,12 @@ func Get_floor_sensor_signal() int {
 
 func Set_floor_indicator(floor int) {
 
-	if floor == 2 {
+	if floor == 0x02 {
 		IO_set_bit(LIGHT_FLOOR_IND1)
 	} else {
 		IO_clear_bit(LIGHT_FLOOR_IND1)
 	}
-	if floor==1 {
+	if floor == 0x01 {
 		IO_set_bit(LIGHT_FLOOR_IND2)
 	}else {
 		IO_clear_bit(LIGHT_FLOOR_IND2)
@@ -104,12 +111,14 @@ func Set_floor_indicator(floor int) {
 }
 
 func Set_button_lamp(BUTTON_TYPE int, floor int, value int){
+	//fmt.Println(lamp_array[0][0])
 	if value==1 {
-		IO_set_bit(lamp_channel[BUTTON_TYPE][floor])
-	}else
-		IO_clear_bit(lamp_channel[BUTTON_TYPE][floor])
+		IO_set_bit(lamp_array[BUTTON_TYPE][floor])
+	}else{
+		IO_clear_bit(lamp_array[BUTTON_TYPE][floor])
+	}
 }
-func Get_button_signal(BUTTON_TYPE int,floor int, value int){
+func Get_button_signal(BUTTON_TYPE int,floor int) int{
 
 
 	if IO_read_bit(button_array[BUTTON_TYPE][floor])==1 {
