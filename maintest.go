@@ -38,9 +38,9 @@ func main() {
 				}
 			}
 		}
-		if driver.Get_floor_sensor_signal()==3 {
+		if driver.Get_floor_sensor_signal()==2 {
 			driver.Set_motor_direction(-1)
-		}else if driver.Get_floor_sensor_signal()==0 {
+		}else if driver.Get_floor_sensor_signal()==1 {
 			driver.Set_motor_direction(1)
 		}
 	}

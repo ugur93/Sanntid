@@ -16,7 +16,7 @@ const ReadPort="20020"
 
 type message struct {
 	MessageType string
-	MessageId int //Maybe viktighet??
+	MessageId int 
 	Data byte
 	BroadcastPort string
 	RemoteAddr *net.UDPAddr
@@ -66,7 +66,13 @@ func UDP_receive(port string,receive_ch chan message){
 }
 
 func UDP_init(send_ch,receive_ch chan message){
-
+	timeStart := time.Now();
+	timeEnd := time.Now();
+	if timeEnd.sub(timeStart)>100*time.Microsecond {
+		
+	
+	
+	}
 	go UDP_send(BroadcastAddr+":"+SendPort,send_ch)
 	go UDP_receive(":"+ReadPort,receive_ch)
 }
@@ -78,6 +84,7 @@ func main(){
 	receive_ch :=make(chan message,1024)
 	UDP_init(send_ch,receive_ch)
 	msg:=message{MessageType: "I am alive",MessageId: 1,Data: 2,BroadcastPort: SendPort }
+	
 	for{
 		send_ch<-msg;
 		melding:=<-receive_ch
