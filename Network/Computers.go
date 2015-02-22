@@ -13,7 +13,7 @@ func handle_ComputerNetwork(Ip_chan chan string,Comp_chan chan map[string]int){
 	Comp_chan<-Computers
 	time_chan:=make(chan map[string]time.Time,1)
 	time_chan<-timeComputers
-	time_wait_for_update:=make(chan int,2)
+	time_wait_for_update:=make(chan int)
 	temp_Computers:=Computers
 	var ipAddr string;
 	go check_ComputerConnection(time_chan,Comp_chan,time_wait_for_update)
@@ -42,13 +42,14 @@ func handle_ComputerNetwork(Ip_chan chan string,Comp_chan chan map[string]int){
 
 			//fmt.Println("updated")
 			
-			//fmt.Println("Time updated")
+			fmt.Println("Time updated")
 			//fmt.Println("Time Updated")
 			//fmt.Println(temp_timeComputers)
 
 		}
+		case <-time_wait_for_update:
+		
 		default:
-			time_wait_for_update<-1
 		}
 
 		//fmt.Println("Wroking")
@@ -66,21 +67,22 @@ func handle_ComputerNetwork(Ip_chan chan string,Comp_chan chan map[string]int){
 func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan map[string]int,time_wait_for_update chan int){
 	for{
 		//fmt.Println("waiting")
-		<-time_wait_for_update
+		
 
 		temp_timeComputers:=<-time_chan
 		//fmt.Println(temp_timeComputers)
 		
 		//fmt.Println("before loop")
+		timeEnd:=time.Now()
 		for ipAddr,timeStart:=range temp_timeComputers {
 			//fmt.Println("in loop for check")
 			//fmt.Println(temp_timeComputers)
-			timeEnd:=time.Now()
-			/*if timeEnd.Sub(timeStart)>200*time.Millisecond {
-				fmt.Println(timeEnd.Sub(timeStart))
-			}*/
 			
-			if timeEnd.Sub(timeStart)>=200*time.Millisecond {
+			if timeEnd.Sub(timeStart)>200*time.Millisecond {
+				fmt.Println(timeEnd.Sub(timeStart))
+			}
+			
+			if timeEnd.Sub(timeStart)>=300*time.Millisecond {
 				//Computer Disconnected from network or not responding (loop?)
 				//Comp_chan in use only if another computer is disconnected
 				temp_Computers:=<-Comp_chan
@@ -97,7 +99,8 @@ func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan
 		}
 		
 		time_chan<-temp_timeComputers
-		
+		time_wait_for_update<-1
+
 		//fmt.Println("waiting again")
 		//time.Sleep(2*time.Second)
 

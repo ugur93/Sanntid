@@ -10,7 +10,7 @@ import(
 
 
 const BroadcastAddr="192.168.0.255"
-const SendPort="20020"
+const SendPort="20021"
 const ReadPort="20020"
 
 
