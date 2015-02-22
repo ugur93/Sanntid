@@ -19,6 +19,12 @@ func Network_test(){
 	receive_ch :=make(chan Network.Message,1024)
 	Network.UDP_init("2500",send_ch,receive_ch);
 	for {
+		select{
+		case send_ch<-msg:
+		case <-receive_ch:
+		default:
+
+		}
 		send_ch<-msg;
 		<-receive_ch
 		/*
