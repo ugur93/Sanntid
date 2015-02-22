@@ -25,8 +25,7 @@ func Network_test(){
 		default:
 
 		}
-		send_ch<-msg;
-		<-receive_ch
+		
 		/*
 		if melding.MessageType=="I am alive" {
 			fmt.Println("Message type: ",melding.MessageType)
