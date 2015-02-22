@@ -1,6 +1,6 @@
 package main
 
-//import "fmt"
+import "fmt"
 //import "./driver"
 //import "time"
 import "./Network"
@@ -23,6 +23,7 @@ func Network_test(){
 		case send_ch<-msg:
 		case <-receive_ch:
 		default:
+			fmt.Println("On default")
 
 		}
 		
