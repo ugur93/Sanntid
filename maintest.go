@@ -1,6 +1,6 @@
 package main
 
-import "fmt"
+//import "fmt"
 //import "./driver"
 //import "time"
 import "./Network"
@@ -20,8 +20,8 @@ func Network_test(){
 	Network.UDP_init("2500",send_ch,receive_ch);
 	for {
 		send_ch<-msg;
-		melding:=<-receive_ch
-		
+		<-receive_ch
+		/*
 		if melding.MessageType=="I am alive" {
 			fmt.Println("Message type: ",melding.MessageType)
 			fmt.Println("Message ID: ",melding.MessageId)
@@ -29,7 +29,7 @@ func Network_test(){
 			fmt.Println("BroadcastPort: ",melding.BroadcastPort)
 			fmt.Println("Remote Address: ",melding.RemoteAddr)
 			fmt.Println("-------------------------------------------")
-		}
+		}*/
 
 	}
 }

@@ -21,11 +21,15 @@ type Message struct {
 	BroadcastPort string
 	RemoteAddr *net.UDPAddr
 }
+var localAddr string
 func UDP_send(addr string,send_ch chan Message){
 	con,err:=net.Dial("udp4",addr);
 	if err!=nil {
 		fmt.Println("Error Dial",err)
 	}
+	localAddr=con.LocalAddr().String()
+	fmt.Println(con.LocalAddr())
+	//time.Sleep(10000*time.Second)
 	for{
 		msg:=<-send_ch
 		message,err:=json.Marshal(msg)
@@ -40,7 +44,7 @@ func UDP_send(addr string,send_ch chan Message){
 	}	
 }
 
-func UDP_receive(port string,receive_ch chan Message){
+func UDP_receive(port string,receive_ch chan Message,IP_chan chan string){
 	addr,err:=net.ResolveUDPAddr("udp",port)
 	sock,_:=net.ListenUDP("udp",addr)
 	if err!=nil {
@@ -59,15 +63,20 @@ func UDP_receive(port string,receive_ch chan Message){
 			fmt.Println(err);
 		}
 		msg.RemoteAddr=Raddr
-		
+		if Raddr.String()!=localAddr{
+			IP_chan<-Raddr.String()
+		}
 		receive_ch<-msg
 		
 	}
 }
 
 func UDP_init(Port string,send_ch,receive_ch chan Message){
+	Comp_chan:=make(chan map[string]int,1)
+	Ip_chan:=make(chan string,1)
 	go UDP_send(BroadcastAddr+":"+Port,send_ch)
-	go UDP_receive(":"+Port,receive_ch)
+	go UDP_receive(":"+Port,receive_ch,Ip_chan)
+	go handle_ComputerNetwork(Ip_chan,Comp_chan)
 }
 
 /*
