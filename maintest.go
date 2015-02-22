@@ -1,12 +1,41 @@
 package main
 
 import "fmt"
-import "./driver"
-	import "time"
+//import "./driver"
+//import "time"
+import "./Network"
+
 
 
 
 func main() {
+	Network_test();
+}
+
+func Network_test(){
+
+	msg:=Network.Message{MessageType: "I am alive",MessageId: 1,Data: 2,BroadcastPort: "2500" }
+	send_ch :=make(chan Network.Message,1024)
+	receive_ch :=make(chan Network.Message,1024)
+	Network.UDP_init("2500",send_ch,receive_ch);
+	for {
+		send_ch<-msg;
+		melding:=<-receive_ch
+		
+		if melding.MessageType=="I am alive" {
+			fmt.Println("Message type: ",melding.MessageType)
+			fmt.Println("Message ID: ",melding.MessageId)
+			fmt.Println("Data: ",melding.Data)
+			fmt.Println("BroadcastPort: ",melding.BroadcastPort)
+			fmt.Println("Remote Address: ",melding.RemoteAddr)
+			fmt.Println("-------------------------------------------")
+		}
+
+	}
+}
+/*
+func Driver_test(){
+
 	driver.Driver_init()
 	fmt.Println("test",driver.Get_stop_signal())
 	driver.Set_motor_direction(1)
@@ -44,4 +73,7 @@ func main() {
 			driver.Set_motor_direction(1)
 		}
 	}
+
+
 }
+*/

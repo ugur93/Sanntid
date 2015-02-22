@@ -1,27 +1,27 @@
-package network
+package Network
 
 import(
 	"fmt"
 	"net"
 	"time"
-	"runtime"
+	//"runtime"
 	"encoding/json"
 )
 
 
-const BroadcastAddr="78.91.75.205"
+const BroadcastAddr="192.168.0.255"
 const SendPort="20020"
 const ReadPort="20020"
 
 
-type message struct {
+type Message struct {
 	MessageType string
 	MessageId int 
 	Data byte
 	BroadcastPort string
 	RemoteAddr *net.UDPAddr
 }
-func UDP_send(addr string,send_ch chan message){
+func UDP_send(addr string,send_ch chan Message){
 	con,err:=net.Dial("udp4",addr);
 	if err!=nil {
 		fmt.Println("Error Dial",err)
@@ -40,14 +40,15 @@ func UDP_send(addr string,send_ch chan message){
 	}	
 }
 
-func UDP_receive(port string,receive_ch chan message){
+func UDP_receive(port string,receive_ch chan Message){
 	addr,err:=net.ResolveUDPAddr("udp",port)
 	sock,_:=net.ListenUDP("udp",addr)
 	if err!=nil {
 		fmt.Println(err)
 	}
+	//timeStart:=time.Now();
 	for{	
-		msg:=message{}
+		msg:=Message{}
 		buffer:=make([]byte,1024)
 		n,Raddr,err:=sock.ReadFromUDP(buffer)
 		if err!=nil{
@@ -61,23 +62,15 @@ func UDP_receive(port string,receive_ch chan message){
 		
 		receive_ch<-msg
 		
-		time.Sleep(100*time.Millisecond)
 	}
 }
 
-func UDP_init(send_ch,receive_ch chan message){
-	timeStart := time.Now();
-	timeEnd := time.Now();
-	if timeEnd.sub(timeStart)>100*time.Microsecond {
-		
-	
-	
-	}
-	go UDP_send(BroadcastAddr+":"+SendPort,send_ch)
-	go UDP_receive(":"+ReadPort,receive_ch)
+func UDP_init(Port string,send_ch,receive_ch chan Message){
+	go UDP_send(BroadcastAddr+":"+Port,send_ch)
+	go UDP_receive(":"+Port,receive_ch)
 }
 
-
+/*
 func main(){
 	//runtime.GOMAXPROCS(runtime.NumCPU())
 	send_ch :=make(chan message,1024)
@@ -99,4 +92,4 @@ func main(){
 		}
 	}
 }
-
+*/
