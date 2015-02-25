@@ -59,7 +59,7 @@ func UDP_receive(port string,receive_ch chan Message,IP_chan chan string){
 		if err!=nil {
 			fmt.Println(err);
 		}
-		//msg.RemoteAddr=Raddr
+		msg.RemoteAddr=Raddr
 		/*if Raddr.String()!=localAddr{
 			
 		}*/

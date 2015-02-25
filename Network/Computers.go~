@@ -77,9 +77,9 @@ func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan
 		for ipAddr,timeStart:=range temp_timeComputers {
 			//fmt.Println("in loop for check")
 			//fmt.Println(temp_timeComputers)
-			
+			fmt.Println(timeEnd.Sub(timeStart))
 			if timeEnd.Sub(timeStart)>200*time.Millisecond {
-				fmt.Println(timeEnd.Sub(timeStart))
+				
 			}
 			
 			if timeEnd.Sub(timeStart)>=300*time.Millisecond {

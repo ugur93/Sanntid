@@ -17,18 +17,18 @@ func Network_test(){
 	msg:=Network.Message{MessageType: "I am alive",MessageId: 1,Data: 2,BroadcastPort: "2500" }
 	send_ch :=make(chan Network.Message,1024)
 	receive_ch :=make(chan Network.Message,1024)
-	Network.UDP_init("2500",send_ch,receive_ch);
+	Network.UDP_init("30000",send_ch,receive_ch);
 	for {
 		select{
 		case send_ch<-msg:
-		case <-receive_ch:
+		case  <-receive_ch:
 		default:
 			//fmt.Println("On default")
 
 		}
 		
-		/*
-		if melding.MessageType=="I am alive" {
+		
+		/*if melding.MessageType=="I am alive" {
 			fmt.Println("Message type: ",melding.MessageType)
 			fmt.Println("Message ID: ",melding.MessageId)
 			fmt.Println("Data: ",melding.Data)
