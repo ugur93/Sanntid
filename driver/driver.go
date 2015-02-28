@@ -2,12 +2,10 @@ package driver
 
 import(
 	"fmt"
-
 )
 
-
 const N_BUTTONS=3
-
+const N_FLOORS = 4
 
 var button_array =[][] int{{BUTTON_UP1,BUTTON_UP2,BUTTON_UP3},
 {BUTTON_DOWN1,BUTTON_DOWN2,BUTTON_DOWN3},{BUTTON_COMMAND1,BUTTON_COMMAND2,BUTTON_COMMAND3,BUTTON_COMMAND4}}
@@ -28,9 +26,9 @@ const (
 	DIRN_UP int=1
 
 )
-func Driver_init(){
+func Driver_init()(current_floor int){
 	if !IO_init() {
-		fmt.Println("Could not initialize IO module")	
+		fmt.Println("Could not initialize IO module")
 	}
 	for i:=0; i<4; i++ {
 		if i < 3 {
@@ -38,13 +36,11 @@ func Driver_init(){
 			Set_button_lamp(1,i,0)
 		}
 		Set_button_lamp(2,i,0)
-	
 	}
 	Set_stop_lamp(0)
 	Set_door_lamp(0)
 	Set_floor_indicator(0)
-
-
+	current_floor = Get_to_defined_state()
 }
 func Set_motor_direction(DIRN int){
 	if DIRN == 0 {
@@ -56,13 +52,9 @@ func Set_motor_direction(DIRN int){
 		IO_set_bit(MOTORDIR)
 		IO_write_analog(MOTOR, 2800)
 	}
-
-
 }
-
 func Get_obstruction_signal() (int) {
 	return IO_read_bit(OBSTRUCTION)
-
 }
 func Get_stop_signal() (int) {
 	return IO_read_bit(STOP)
@@ -109,7 +101,6 @@ func Set_floor_indicator(floor int) {
 		IO_clear_bit(LIGHT_FLOOR_IND2)
 	}
 }
-
 func Set_button_lamp(BUTTON_TYPE int, floor int, value int){
 	//fmt.Println(lamp_array[0][0])
 	if value==1 {
@@ -126,5 +117,46 @@ func Get_button_signal(BUTTON_TYPE int,floor int) int{
 	}else {
 		return 0;
 	}
-
+}
+func Check_for_outside_order(outside_order_ch chan [2]int){
+	order_array := [2]int
+	for{
+		for floor := 1; floor < N_FLOORS + 1; floor++{
+			if Get_button_signal(BUTTON_CALL_DOWN, floor){  //Maybe not be true after entering,
+				order_array[0] = BUTTON_CALL_DOWN			//And may cause problems
+				order_array[1] = floor
+				outside_order_ch <= order_array
+			}
+			else if Get_button_signal(BUTTON_CALL_UP, floor){
+				order_array[0] = BUTTON_CALL_UP
+				order_array[1] = floor
+				outside_order_ch <= order_array
+			}
+		} 
+	}
+}
+func Check_for_inside_order(inside_order_ch chan int){
+	order := int
+	for{
+		for floor := 1; floor < N_FLOORS + 1; floor++{
+			if Get_button_signal(BUTTON_COMMAND, floor){  	//Maybe not be true after entering,
+				order = floor								//And may cause problems
+				inside_order_ch <= order
+			}
+		}
+	}
+}
+func Get_to_defined_state()(current_floor int){
+	if Get_floor_sensor_signal() != -1{
+		return Get_floor_sensor_signal
+	}
+	else{
+		Set_motor_direction(DIRN_DOWN)
+		for{
+			if Get_floor_sensor_signal() != -1{
+				Set_motor_direction(DIRN_STOP)
+				return Get_floor_sensor_signal
+			}
+		}
+	}
 }
