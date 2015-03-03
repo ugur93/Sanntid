@@ -9,7 +9,8 @@ import(
 )
 
 
-const BroadcastAddr="129.241.187.255"
+//const BroadcastAddr="129.241.187.255"
+const BroadcastAddr="192.168.0.255"
 const SendPort="20020"
 const ReadPort="20020"
 
@@ -37,7 +38,7 @@ func UDP_send(addr string,send_ch chan Message){
 		if(err!=nil){
 			fmt.Println("Error with Write: ",err)
 		}
-		time.Sleep(100*time.Millisecond)
+		time.Sleep(300*time.Millisecond)
 	}	
 }
 
@@ -60,10 +61,10 @@ func UDP_receive(port string,receive_ch chan Message,IP_chan chan string){
 			fmt.Println(err);
 		}
 		//msg.RemoteAddr=Raddr
-		/*if Raddr.String()!=localAddr{
-			
-		}*/
-		IP_chan<-Raddr.String()
+		if Raddr.String()!=localAddr{
+			IP_chan<-Raddr.String()	
+		}
+		
 		receive_ch<-msg
 		
 	}

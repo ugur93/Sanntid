@@ -14,7 +14,7 @@ func main() {
 
 func Network_test(){
 
-	msg:=Network.Message{MessageType: "I am alive",MessageId: 1,Data: 2,BroadcastPort: "2500" }
+	msg:=Network.Message{MessageType: "I am alive",Data: 2}
 	send_ch :=make(chan Network.Message,1024)
 	receive_ch :=make(chan Network.Message,1024)
 	Network.UDP_init("30000",send_ch,receive_ch);

@@ -78,11 +78,11 @@ func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan
 			//fmt.Println("in loop for check")
 			//fmt.Println(temp_timeComputers)
 			
-			if timeEnd.Sub(timeStart)>200*time.Millisecond {
+			if timeEnd.Sub(timeStart)>350*time.Millisecond {
 				fmt.Println(timeEnd.Sub(timeStart))
 			}
 			
-			if timeEnd.Sub(timeStart)>=300*time.Millisecond {
+			if timeEnd.Sub(timeStart)>=400*time.Millisecond {
 				//Computer Disconnected from network or not responding (loop?)
 				//Comp_chan in use only if another computer is disconnected
 				temp_Computers:=<-Comp_chan
