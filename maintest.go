@@ -4,6 +4,7 @@ package main
 //import "./driver"
 //import "time"
 import "./Network"
+//import "time"
 
 
 
@@ -13,19 +14,13 @@ func main() {
 }
 
 func Network_test(){
-
-	msg:=Network.Message{MessageType: "I am alive",Data: 2}
-	send_ch :=make(chan Network.Message,1024)
-	receive_ch :=make(chan Network.Message,1024)
-	Network.UDP_init("30000",send_ch,receive_ch);
-	for {
-		select{
-		case send_ch<-msg:
-		case  <-receive_ch:
-		default:
+		Queue_chan:=make(chan int)
+		go Network.Network_Manager("30000",Queue_chan)
+		//time.Sleep(2*time.Second)
+		<-Queue_chan
 			//fmt.Println("On default")
 
-		}
+
 		
 		
 		/*if melding.MessageType=="I am alive" {
@@ -37,7 +32,7 @@ func Network_test(){
 			fmt.Println("-------------------------------------------")
 		}*/
 
-	}
+	
 }
 /*
 func Driver_test(){
