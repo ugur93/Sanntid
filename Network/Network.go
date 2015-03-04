@@ -9,8 +9,8 @@ import(
 )
 
 
-//const BroadcastAddr="129.241.187.255"
-const BroadcastAddr="192.168.0.255"
+const BroadcastAddr="78.91.73.255"
+//const BroadcastAddr="192.168.0.255"
 
 
 type Message struct {

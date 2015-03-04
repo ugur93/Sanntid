@@ -15,7 +15,7 @@ func main() {
 
 func Network_test(){
 		Queue_chan:=make(chan int)
-		go Network.Network_Manager("30000",Queue_chan)
+		go Network.Network_Manager("20020",Queue_chan)
 		//time.Sleep(2*time.Second)
 		<-Queue_chan
 			//fmt.Println("On default")
