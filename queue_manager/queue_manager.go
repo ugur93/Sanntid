@@ -1,8 +1,9 @@
-package queue_manager
+package Queue_manager
 
-import driver //HOW DOES ONE DO THIS
+import "./Driver" //HOW DOES ONE DO THIS
 
-Queue := [3][N_FLOORS]int //What is this
+type Queue_type [N_FLOORS+2*(N_FLOORS-1)]int
+Queue := map[string]Queue_type;
 
 func Get_orders(){ //STILL IN PRODUCTION, how is the queue going to be
 	outside_order_ch := chan [2]int

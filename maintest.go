@@ -1,16 +1,22 @@
 package main
 
-//import "fmt"
+import "fmt"
 //import "./driver"
 //import "time"
 import "./Network"
 //import "time"
+const N_FLOORS int = 4
 
-
-
-
+type Queue_type [N_FLOORS+2*(N_FLOORS-1)+2]int
 func main() {
+	Queue := map[string]Queue_type{};
+	var Queue1 Queue_type
+	Queue1[1]=1;
+	Queue["test 1"]=Queue1;
+	fmt.Println(Queue)
 	Network_test();
+	
+	
 }
 
 func Network_test(){
