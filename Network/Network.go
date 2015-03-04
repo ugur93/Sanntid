@@ -6,6 +6,7 @@ import(
 	"time"
 	//"runtime"
 	"encoding/json"
+	//"../Queue_manager"
 )
 
 
@@ -15,7 +16,7 @@ const BroadcastAddr="78.91.73.255"
 
 type Message struct {
 	MessageType string
-	Data byte
+	Data Queue_manager.Queue_type
 	RemoteAddr string
 }
 var localAddr string

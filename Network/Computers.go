@@ -3,14 +3,19 @@ package Network
 import(
 	"fmt"
 	"time"
-	"../queue_manager"
+	"../Queue_manager"
 	//"net"
 
 
 )
 var Network_elevators=map[string]int{}
 var network_TimeStamp=map[string]time.Time{} //private
+var Queue = map[string]Queue_manager.Queue_type{}
 func Network_Manager(Port string,Queue_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
+	var Queue1 Queue_manager.Queue_type
+	Queue1[1]=1;
+	Queue["test 1"]=Queue1;
+	fmt.Println(Queue)
 	//Comp_chan:=make(chan map[string]int,1)
 	//Ip_chan:=make(chan string,1)
 

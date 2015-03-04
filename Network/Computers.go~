@@ -3,57 +3,79 @@ package Network
 import(
 	"fmt"
 	"time"
+	"../Queue_manager"
 	//"net"
 
 
 )
-var Computers=map[string]int{}
-var timeComputers=map[string]time.Time{}
-func handle_ComputerNetwork(Ip_chan chan string,Comp_chan chan map[string]int){
-	Comp_chan<-Computers
-	time_chan:=make(chan map[string]time.Time,1)
-	time_chan<-timeComputers
-	time_wait_for_update:=make(chan int)
-	temp_Computers:=Computers
-	var ipAddr string;
-	go check_ComputerConnection(time_chan,Comp_chan,time_wait_for_update)
+var Network_elevators=map[string]int{}
+var network_TimeStamp=map[string]time.Time{} //private
+var Queue = map[string]queue_manager.Queue_type{}
+func Network_Manager(Port string,Queue_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
+	var Queue1 queue_manager.Queue_type
+	Queue1[1]=1;
+	Queue["test 1"]=Queue1;
+	fmt.Println(Queue)
+	//Comp_chan:=make(chan map[string]int,1)
+	//Ip_chan:=make(chan string,1)
+
+	//Initialize UDP connection
+	send_ch :=make(chan Message,1024)
+	receive_ch :=make(chan Message,1024)
+	UDP_init(Port,send_ch,receive_ch);
+
+	//initialize channels
+	time_chan:=make(chan int,1)
+	elev_chan:=make(chan int,1)
+	time_chan<-1
+	elev_chan<-1
+
+	//Initialize variables
+	var ipAddr string
+	//lastRecieved:=time.Now()
+	msgAlive:=Message{MessageType: "I am alive",Data: 0,RemoteAddr: " "}
+
+	
+	go check_ComputerConnection(time_chan,elev_chan)
+
 	for{
 		select{
-		case ipAddr=<-Ip_chan:
-			if _,ok:=temp_Computers[ipAddr]; ok==false {
-			//New Computer connected, put in map
-			temp_Computers=<-Comp_chan
-			temp_Computers[ipAddr]=1
-			Comp_chan<-temp_Computers
-			fmt.Println(ipAddr,"Connected to the network")
-			//fmt.Println(temp_Computers)
+			case msg:=<-receive_ch:
+				ipAddr=msg.RemoteAddr
+				if msg.MessageType != "I am alive" {
+					<-time_chan
+					network_TimeStamp[ipAddr]=time.Now()
+					time_chan<-1
+					//Send to QueueManager
+				}else if _,ok:=Network_elevators[ipAddr]; ok==false {
+					//New Computer connected, put in map
+					<-elev_chan
+					Network_elevators[ipAddr]=1
+					elev_chan<-1
+					fmt.Println(ipAddr,"Connected to the network")
+					//fmt.Println(temp_Computers)
+					<-time_chan
+					network_TimeStamp[ipAddr]=time.Now()
+					time_chan<-1
+					//fmt.Println("TimeComputers updated")
+				}else{
+					//Computer already connected, update timestamp
+					<-time_chan
+					network_TimeStamp[ipAddr]=time.Now()
+					time_chan<-1
 
-			temp_timeComputers:=<-time_chan
-			temp_timeComputers[ipAddr]=time.Now()
-			time_chan<-temp_timeComputers
-			//fmt.Println("TimeComputers updated")
-		}else{
-			//Computer already connected, update timestamp
-			//fmt.Println("Time update starting")
-			
-			temp_timeComputers:=<-time_chan
-			temp_timeComputers[ipAddr]=time.Now()
-			time_chan<-temp_timeComputers
-
-			//fmt.Println("updated")
-			
-			//3fmt.Println("Time updated")
-			//fmt.Println("Time Updated")
-			//fmt.Println(temp_timeComputers)
-
-		}
-		case <-time_wait_for_update:
-		
-		default:
-		}
-
-		//fmt.Println("Wroking")
-		//ipAddr:=<-Ip_chan
+			}
+			case send_ch<-msgAlive:
+				//Do something
+			default:
+				/*if lastRecieved.Sub(time.Now()) > 2*time.Second {
+					fmt.Println("No Computers on network, going singlemode :/")
+				}else {
+					lastRecieved=time.Now()
+				}
+				*/
+				//Do something
+			}
 		
 		
 		
@@ -64,32 +86,28 @@ func handle_ComputerNetwork(Ip_chan chan string,Comp_chan chan map[string]int){
 
 
 }
-func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan map[string]int,time_wait_for_update chan int){
+func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 	for{
-		//fmt.Println("waiting")
-		
 
-		temp_timeComputers:=<-time_chan
-		//fmt.Println(temp_timeComputers)
-		
-		//fmt.Println("before loop")
+		<-time_chan
+
 		timeEnd:=time.Now()
-		for ipAddr,timeStart:=range temp_timeComputers {
+		for ipAddr,timeStart:=range network_TimeStamp {
 			//fmt.Println("in loop for check")
 			//fmt.Println(temp_timeComputers)
-			fmt.Println(timeEnd.Sub(timeStart))
-			if timeEnd.Sub(timeStart)>200*time.Millisecond {
-				
+			
+			if timeEnd.Sub(timeStart)>350*time.Millisecond {
+				//fmt.Println(timeEnd.Sub(timeStart))
 			}
 			
-			if timeEnd.Sub(timeStart)>=300*time.Millisecond {
+			if timeEnd.Sub(timeStart)>=500*time.Millisecond {
 				//Computer Disconnected from network or not responding (loop?)
 				//Comp_chan in use only if another computer is disconnected
-				temp_Computers:=<-Comp_chan
-				temp_Computers[ipAddr]=0
-				delete(temp_Computers,ipAddr)
-				delete(temp_timeComputers,ipAddr)
-				Comp_chan<-temp_Computers
+				<-elev_chan
+				Network_elevators[ipAddr]=0
+				delete(Network_elevators,ipAddr)
+				delete(network_TimeStamp,ipAddr)
+				elev_chan<-1
 				//Slett fra Computers arrayet
 				fmt.Println(ipAddr,"Disconnected from the network")
 			}
@@ -98,8 +116,7 @@ func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan
 
 		}
 		
-		time_chan<-temp_timeComputers
-		time_wait_for_update<-1
+		time_chan<-1
 
 		//fmt.Println("waiting again")
 		//time.Sleep(2*time.Second)
@@ -112,3 +129,6 @@ func check_ComputerConnection(time_chan chan map[string]time.Time,Comp_chan chan
 
 
 }
+
+//Maybe a message handler module????
+//func Broadcast_new_order(

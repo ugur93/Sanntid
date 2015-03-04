@@ -40,7 +40,8 @@ func Driver_init()(current_floor int){
 	Set_stop_lamp(0)
 	Set_door_lamp(0)
 	Set_floor_indicator(0)
-	current_floor = Get_to_defined_state()
+	return 1
+	//current_floor = Get_to_defined_state()
 }
 func Set_motor_direction(DIRN int){
 	if DIRN == 0 {
@@ -118,6 +119,7 @@ func Get_button_signal(BUTTON_TYPE int,floor int) int{
 		return 0;
 	}
 }
+/*
 func Check_for_outside_order(outside_order_ch chan [2]int){
 	order_array := [2]int
 	for{
@@ -159,4 +161,4 @@ func Get_to_defined_state()(current_floor int){
 			}
 		}
 	}
-}
+}*/
