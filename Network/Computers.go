@@ -8,14 +8,16 @@ import(
 
 
 )
-var Network_elevators=map[string]int{}
 var network_TimeStamp=map[string]time.Time{} //private
-var Queue = map[string]Queue_manager.Queue_type{}
+var Queue_Network = map[string]Queue_manager.Queue_type{}
+
 func Network_Manager(Port string,Queue_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
-	var Queue1 Queue_manager.Queue_type
-	Queue1[1]=1;
-	Queue["test 1"]=Queue1;
-	fmt.Println(Queue)
+
+
+
+
+
+	fmt.Println(Queue_manager.Queue)
 	//Comp_chan:=make(chan map[string]int,1)
 	//Ip_chan:=make(chan string,1)
 
@@ -33,8 +35,9 @@ func Network_Manager(Port string,Queue_chan chan int){ //,Ip_chan chan string,Co
 	//Initialize variables
 	var ipAddr string
 	//lastRecieved:=time.Now()
-	msgAlive:=Message{MessageType: "I am alive",Data: 0,RemoteAddr: " "}
-
+	<-Queue_chan
+	msgAlive:=Message{MessageType: "I am alive",Data: Queue_manager.Queue,RemoteAddr: " "}
+	Queue_chan<-1
 	
 	go check_ComputerConnection(time_chan,elev_chan)
 
@@ -47,10 +50,10 @@ func Network_Manager(Port string,Queue_chan chan int){ //,Ip_chan chan string,Co
 					network_TimeStamp[ipAddr]=time.Now()
 					time_chan<-1
 					//Send to QueueManager
-				}else if _,ok:=Network_elevators[ipAddr]; ok==false {
+				}else if _,ok:=Queue_Network[ipAddr]; ok==false {
 					//New Computer connected, put in map
 					<-elev_chan
-					Network_elevators[ipAddr]=1
+					Queue_Network[ipAddr]=msg.Data
 					elev_chan<-1
 					fmt.Println(ipAddr,"Connected to the network")
 					//fmt.Println(temp_Computers)
@@ -104,8 +107,7 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 				//Computer Disconnected from network or not responding (loop?)
 				//Comp_chan in use only if another computer is disconnected
 				<-elev_chan
-				Network_elevators[ipAddr]=0
-				delete(Network_elevators,ipAddr)
+				delete(Queue_Network,ipAddr)
 				delete(network_TimeStamp,ipAddr)
 				elev_chan<-1
 				//Slett fra Computers arrayet

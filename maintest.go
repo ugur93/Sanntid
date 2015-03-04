@@ -1,30 +1,28 @@
 package main
 
-import "fmt"
+//import "fmt"
 //import "./driver"
 //import "time"
 import "./Network"
+import "./Queue_manager"
 //import "time"
 const N_FLOORS int = 4
 
-type Queue_type [N_FLOORS+2*(N_FLOORS-1)+2]int
 func main() {
-	Queue := map[string]Queue_type{};
-	var Queue1 Queue_type
-	Queue1[1]=1;
-	Queue["test 1"]=Queue1;
-	fmt.Println(Queue)
+
+	Queue_manager.Queue_manager_init();
 	Network_test();
 	
 	
 }
 
 func Network_test(){
-		Queue_chan:=make(chan int)
+
+		Queue_chan:=make(chan int,1)
+		Queue_chan<-1
 		go Network.Network_Manager("20020",Queue_chan)
 		//time.Sleep(2*time.Second)
-		<-Queue_chan
-			//fmt.Println("On default")
+		Queue_chan<-1			//fmt.Println("On default")
 
 
 		
