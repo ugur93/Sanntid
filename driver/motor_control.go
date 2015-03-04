@@ -1,6 +1,4 @@
-package motor_control
-
-import driver
+package driver
 
 const NUMBER_OF_FLOORS = 4
 

@@ -1,6 +1,6 @@
-package Queue_manager
+package queue_manager
 
-import "./Driver" //HOW DOES ONE DO THIS
+import "../Driver" //HOW DOES ONE DO THIS
 
 type Queue_type [N_FLOORS+2*(N_FLOORS-1)]int
 Queue := map[string]Queue_type;
