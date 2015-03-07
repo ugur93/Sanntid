@@ -3,6 +3,7 @@ package Queue_manager
 import "../driver"
 import "../Network"
 import "../Types"
+import "time"
 //import "../driver" //HOW DOES ONE DO THIS
 
 var Queue Types.Queue_type;
@@ -45,6 +46,7 @@ func Queue_manager_init(stop_chan chan int){
 						//fmt.Print("Button 2, ",i," is pressed!\r")	
 					}
 			}
+			time.Sleep(100*time.Millisecond) 
 		}	
 
 

@@ -42,16 +42,16 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 			case msg:=<-receive_ch:
 				//fmt.Println("her")
 				ipAddr=msg.RemoteAddr
-				if msg.MessageType != "I am alive" {
-
-					if msg.MessageType == "Update" {
+				<-time_chan
+				network_TimeStamp[ipAddr]=time.Now()
+				time_chan<-1
+				if msg.MessageType == "Update" {
 						<-elev_chan
 						Queue_Network[ipAddr]=msg.Data
 						elev_chan<-1
 						Order_update<-ipAddr
-						//Notify QueueManager
-					}
-					
+						fmt.Println("Updated")
+						//Notify QueueManager		
 					//Send to QueueManager
 				}else if _,ok:=Queue_Network[ipAddr]; ok==false {
 					//New Computer connected, put in map
@@ -62,9 +62,8 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 					fmt.Println(ipAddr,"Connected to the network")
 					
 				}
-				<-time_chan
-				network_TimeStamp[ipAddr]=time.Now()
-				time_chan<-1
+				
+				
 			case msg:=<-new_message:
 				send_ch<-msg
 			default:
@@ -77,7 +76,7 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 				//Do something
 			}
 		
-		
+		//time.Sleep(100*time.Millisecond)
 		
 		
 
@@ -105,10 +104,10 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 				//fmt.Println(temp_timeComputers)
 				
 				if timeEnd.Sub(timeStart)>200*time.Millisecond {
-					fmt.Println(timeEnd.Sub(timeStart))
+					fmt.Println(ipAddr,timeEnd.Sub(timeStart))
 				}
 				
-				if timeEnd.Sub(timeStart)>=300*time.Millisecond {
+				if timeEnd.Sub(timeStart)>=400*time.Millisecond {
 					//Computer Disconnected from network or not responding (loop?)
 					//Comp_chan in use only if another computer is disconnected
 					<-elev_chan
@@ -126,7 +125,7 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 			}
 			
 			
-		
+		time.Sleep(50*time.Millisecond)
 		//fmt.Println("waiting again")
 		//time.Sleep(2*time.Second)
 

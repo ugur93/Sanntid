@@ -15,7 +15,7 @@ const BroadcastAddr="129.241.187.255"
 
 type Message struct {
 	MessageType string
-	Data types.Queue_type
+	Data Types.Queue_type
 	RemoteAddr string
 }
 var localAddr string
@@ -69,8 +69,9 @@ func UDP_receive(port string,receive_ch chan Message){
 		fmt.Println(err)
 	}
 	//timeStart:=time.Now();
+	msg:=Message{}
 	for{	
-		msg:=Message{}
+		
 		buffer:=make([]byte,1024)
 		n,Raddr,err:=sock.ReadFromUDP(buffer)
 		if err!=nil{

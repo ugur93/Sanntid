@@ -69,9 +69,11 @@ func UDP_receive(port string,receive_ch chan Message){
 		fmt.Println(err)
 	}
 	//timeStart:=time.Now();
+	msg:=Message{}
+	buffer:=make([]byte,1024)
 	for{	
-		msg:=Message{}
-		buffer:=make([]byte,1024)
+		
+		
 		n,Raddr,err:=sock.ReadFromUDP(buffer)
 		if err!=nil{
 			fmt.Println(err)
