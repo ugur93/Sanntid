@@ -17,10 +17,10 @@ func main() {
 }
 
 func Network_test(){
-
+		new_message:=make(chan Network.Message)
 		Queue_chan:=make(chan int,1)
 		Queue_chan<-1
-		go Network.Network_Manager("20020",Queue_chan)
+		go Network.Network_Manager("20020",Queue_chan,new_message)
 		//time.Sleep(2*time.Second)
 		Queue_chan<-1			//fmt.Println("On default")
 
@@ -37,6 +37,9 @@ func Network_test(){
 		}*/
 
 	
+}
+func Update_lights(){
+
 }
 /*
 func Driver_test(){
