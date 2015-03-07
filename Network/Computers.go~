@@ -10,7 +10,7 @@ import(
 
 )
 var network_TimeStamp=map[string]time.Time{} //private
-var Queue_Network = map[string]types.Queue_type{}
+var Queue_Network = map[string]Types.Queue_type{}
 
 func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,stop_chan chan int,Order_update chan string,elev_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
 
@@ -51,9 +51,7 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 						Order_update<-ipAddr
 						//Notify QueueManager
 					}
-					<-time_chan
-					network_TimeStamp[ipAddr]=time.Now()
-					time_chan<-1
+					
 					//Send to QueueManager
 				}else if _,ok:=Queue_Network[ipAddr]; ok==false {
 					//New Computer connected, put in map
@@ -62,17 +60,11 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 					elev_chan<-1
 					// what if elevator have order already????
 					fmt.Println(ipAddr,"Connected to the network")
-					<-time_chan
-					network_TimeStamp[ipAddr]=time.Now()
-					time_chan<-1
-				}else{
-					//Computer already connected, update timestamp
-					<-time_chan
-					//fmt.Println("Updated")
-					network_TimeStamp[ipAddr]=time.Now()
-					time_chan<-1
-
-			}
+					
+				}
+				<-time_chan
+				network_TimeStamp[ipAddr]=time.Now()
+				time_chan<-1
 			case msg:=<-new_message:
 				send_ch<-msg
 			default:
@@ -113,7 +105,7 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 				//fmt.Println(temp_timeComputers)
 				
 				if timeEnd.Sub(timeStart)>200*time.Millisecond {
-					//fmt.Println(timeEnd.Sub(timeStart))
+					fmt.Println(timeEnd.Sub(timeStart))
 				}
 				
 				if timeEnd.Sub(timeStart)>=300*time.Millisecond {

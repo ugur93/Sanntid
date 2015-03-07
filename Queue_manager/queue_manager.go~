@@ -25,7 +25,7 @@ func Queue_manager_init(stop_chan chan int){
 				<-elev_chan
 				new_Queue:=Network.Queue_Network[ip];
 				elev_chan<-1
-				Update_lights(new_Queue)
+				go Update_lights(new_Queue)
 			default:
 				for i:=0; i<4; i++ {
 					if driver.Get_button_signal(2,i)==0 {

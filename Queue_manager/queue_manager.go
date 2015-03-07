@@ -9,7 +9,7 @@ var Queue Types.Queue_type;
 
 func Queue_manager_init(stop_chan chan int){
 	//Queue_chan:=make(chan int);
-	new_message:=make(chan Network.Message,1024)
+	new_message:=make(chan Network.Message,1)
 	Queue_chan:=make(chan int,1)
 	elev_chan:=make(chan int,1)
 	Order_update:=make(chan string,1)

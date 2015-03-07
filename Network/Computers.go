@@ -51,9 +51,7 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 						Order_update<-ipAddr
 						//Notify QueueManager
 					}
-					<-time_chan
-					network_TimeStamp[ipAddr]=time.Now()
-					time_chan<-1
+					
 					//Send to QueueManager
 				}else if _,ok:=Queue_Network[ipAddr]; ok==false {
 					//New Computer connected, put in map
@@ -62,17 +60,11 @@ func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,st
 					elev_chan<-1
 					// what if elevator have order already????
 					fmt.Println(ipAddr,"Connected to the network")
-					<-time_chan
-					network_TimeStamp[ipAddr]=time.Now()
-					time_chan<-1
-				}else{
-					//Computer already connected, update timestamp
-					<-time_chan
-					//fmt.Println("Updated")
-					network_TimeStamp[ipAddr]=time.Now()
-					time_chan<-1
-
-			}
+					
+				}
+				<-time_chan
+				network_TimeStamp[ipAddr]=time.Now()
+				time_chan<-1
 			case msg:=<-new_message:
 				send_ch<-msg
 			default:
@@ -113,10 +105,10 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 				//fmt.Println(temp_timeComputers)
 				
 				if timeEnd.Sub(timeStart)>200*time.Millisecond {
-					//fmt.Println(timeEnd.Sub(timeStart))
+					fmt.Println(timeEnd.Sub(timeStart))
 				}
 				
-				if timeEnd.Sub(timeStart)>=300*time.Millisecond {
+				if timeEnd.Sub(timeStart)>=400*time.Millisecond {
 					//Computer Disconnected from network or not responding (loop?)
 					//Comp_chan in use only if another computer is disconnected
 					<-elev_chan
