@@ -45,7 +45,7 @@ func UDP_send(addr string,send_ch chan Message){
 		if(err!=nil){
 			fmt.Println("Error with Write: ",err)
 		}
-		time.Sleep(300*time.Millisecond)
+		time.Sleep(100*time.Millisecond)
 	}	
 }
 
