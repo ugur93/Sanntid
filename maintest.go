@@ -1,28 +1,59 @@
 package main
 
-//import "fmt"
-//import "./driver"
-//import "time"
-import "./Network"
+import "fmt"
+import "./driver"
+import "time"
 import "./Queue_manager"
 //import "time"
 const N_FLOORS int = 4
 
 func main() {
-
-	Queue_manager.Queue_manager_init();
-	Network_test();
+	stop_chan:=make(chan int,1);
+	stop_chan<-1
+	Queue_manager.Queue_manager_init(stop_chan);
+	stop_chan<-1
+	//go Driver_test();
+	//Network_test();
+	
 	
 	
 }
-
+/*
 func Network_test(){
-		new_message:=make(chan Network.Message)
+		new_message:=make(chan Network.Message,1024)
 		Queue_chan:=make(chan int,1)
+		stop_chan:=make(chan int,1);
+		//Queue_chan<-1
+		stop_chan<-1
 		Queue_chan<-1
-		go Network.Network_Manager("20020",Queue_chan,new_message)
-		//time.Sleep(2*time.Second)
-		Queue_chan<-1			//fmt.Println("On default")
+		go Network.Network_Manager("20020",Queue_chan,new_message,stop_chan)
+		var Queue Queue_manager.Queue_type;
+		pressed:=[]int{0,0,0,0}
+		driver.Driver_init()
+		msg:=Network.Message{MessageType: "New order",Data: Queue}
+		for{
+			for i:=0; i<4; i++ {
+			if driver.Get_button_signal(2,i)==0 {
+				pressed[i]=0;
+			}
+			if driver.Get_button_signal(2,i)==1 && pressed[i]==0 {
+				pressed[i]=1;
+				if Queue[i]==true {
+					Queue[i]=false
+				}else {
+					Queue[i]=true;
+				}
+				msg.Data=Queue;
+				new_message<-msg
+				//fmt.Print("Button 2, ",i," is pressed!\r")	
+			}
+		}
+			
+
+
+
+		}
+		stop_chan<-1			//fmt.Println("On default")
 
 
 		
@@ -34,14 +65,11 @@ func Network_test(){
 			fmt.Println("BroadcastPort: ",melding.BroadcastPort)
 			fmt.Println("Remote Address: ",melding.RemoteAddr)
 			fmt.Println("-------------------------------------------")
-		}*/
+		}
 
 	
 }
-func Update_lights(){
-
-}
-/*
+*/
 func Driver_test(){
 
 	driver.Driver_init()
@@ -84,4 +112,4 @@ func Driver_test(){
 
 
 }
-*/
+

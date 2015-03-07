@@ -6,17 +6,16 @@ import(
 	"time"
 	//"runtime"
 	"encoding/json"
-	"../Queue_manager"
+	"../Types"
 )
 
-
-const BroadcastAddr="78.91.73.255"
+const BroadcastAddr="129.241.187.255"
 //const BroadcastAddr="192.168.0.255"
 
 
 type Message struct {
 	MessageType string
-	Data Queue_manager.Queue_type
+	Data Types.Queue_type
 	RemoteAddr string
 }
 var localAddr string
@@ -34,17 +33,31 @@ func UDP_send(addr string,send_ch chan Message){
 	}
 	localAddr=con.LocalAddr().String()
 	fmt.Println("My ip adress is: ",con.LocalAddr())
+	msgAlive:=Message{MessageType: "I am alive",RemoteAddr: " "}
 	//time.Sleep(10000*time.Second)
 	for{
-		msg:=<-send_ch
-		message,err:=json.Marshal(msg)
-		if err!=nil {
-			fmt.Println("Error with Marshal: ",err)
-		}
-		_,err=con.Write([]byte(message))	
-		if(err!=nil){
-			fmt.Println("Error with Write: ",err)
-		}
+		select{
+			case msg:=<-send_ch:
+				msgAlive.Data=msg.Data;
+				message,err:=json.Marshal(msg)
+				if err!=nil {
+					fmt.Println("Error with Marshal: ",err)
+				}
+				_,err=con.Write([]byte(message))	
+				if(err!=nil){
+					fmt.Println("Error with Write: ",err)
+				}
+			default:
+				message,err:=json.Marshal(msgAlive)
+				if err!=nil {
+					fmt.Println("Error with Marshal: ",err)
+				}
+				_,err=con.Write([]byte(message))	
+				if(err!=nil){
+					fmt.Println("Error with Write: ",err)
+				}
+				
+			}
 		time.Sleep(100*time.Millisecond)
 	}	
 }
