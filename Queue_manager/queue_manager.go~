@@ -10,12 +10,16 @@ var Queue Types.Queue_type;
 
 func Queue_manager_init(stop_chan chan int){
 	//Queue_chan:=make(chan int);
+
+	//Stian:
+	//Når det skjer en oppdatering på Queue matrise send gjennom new_message channel
+	//Når det skjer en oppdatering på Queue fra andre heiser kommer det innpå Queue chan
 	new_message:=make(chan Network.Message,1)
-	Queue_chan:=make(chan int,1)
-	elev_chan:=make(chan int,1)
+	Queue_chan:=make(chan int,1) //Bruk det når det leses på Queue
+	elev_chan:=make(chan int,1) //Bruk dette når du leser på Queue_Network array (andre heisenes køer)
 	Order_update:=make(chan string,1)
 	Queue_chan<-1
-	go Network.Network_Manager("20020",Queue_chan,new_message,stop_chan,Order_update,elev_chan)
+	go Network.Network_Manager("20020",new_message,stop_chan,Order_update,elev_chan)
 	pressed:=[]int{0,0,0,0}
 	pressed_UP:=[]int{0,0,0,0}
 	pressed_DOWN:=[]int{0,0,0,0}
@@ -49,7 +53,7 @@ func Queue_manager_init(stop_chan chan int){
 					
 						}
 					}
-					if i!=3 {
+					if i!=0 {
 						if driver.Get_button_signal(1,i)==0 {
 							pressed_DOWN[i]=0;
 						}

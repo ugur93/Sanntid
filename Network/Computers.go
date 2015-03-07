@@ -12,7 +12,7 @@ import(
 var network_TimeStamp=map[string]time.Time{} //private
 var Queue_Network = map[string]Types.Queue_type{}
 
-func Network_Manager(Port string,Queue_chan chan int,new_message chan Message,stop_chan chan int,Order_update chan string,elev_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
+func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Order_update chan string,elev_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
 
 
 	

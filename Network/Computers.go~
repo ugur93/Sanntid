@@ -107,7 +107,7 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 					fmt.Println(ipAddr,timeEnd.Sub(timeStart))
 				}
 				
-				if timeEnd.Sub(timeStart)>=400*time.Millisecond {
+				if timeEnd.Sub(timeStart)>=300*time.Millisecond {
 					//Computer Disconnected from network or not responding (loop?)
 					//Comp_chan in use only if another computer is disconnected
 					<-elev_chan
