@@ -17,6 +17,9 @@ func Queue_manager_init(stop_chan chan int){
 	Queue_chan<-1
 	go Network.Network_Manager("20020",Queue_chan,new_message,stop_chan,Order_update,elev_chan)
 	pressed:=[]int{0,0,0,0}
+	pressed_UP:=[]int{0,0,0}
+	pressed_DOWN:=[]int{0,0,0}
+	updated:=0
 	driver.Driver_init()
 	msg:=Network.Message{MessageType: "Update",Data: Queue}
 	for{
@@ -28,6 +31,41 @@ func Queue_manager_init(stop_chan chan int){
 				elev_chan<-1
 				go Update_lights(new_Queue)
 			default:
+				for i:=0; i<3; i++ {
+					if driver.Get_button_signal(0,i)==0 {
+						pressed_UP[i]=0;
+					}
+					if driver.Get_button_signal(0,i)==1 && pressed_UP[i]==0 {
+						pressed_UP[i]=1;
+						if Queue[i+4]==true {
+							Queue[i+4]=false
+							driver.Set_button_lamp(0,i,0)
+						}else {
+							Queue[i+4]=true;
+							driver.Set_button_lamp(0,i,1)
+						}
+						updated=1
+					
+					}
+					if driver.Get_button_signal(1,i)==0 {
+						pressed_DOWN[i]=0;
+					}
+					if driver.Get_button_signal(1,i)==1 && pressed_DOWN[i]==0 {
+						pressed_DOWN[i]=1;
+						if Queue[i+7]==true {
+							Queue[i+7]=false
+							driver.Set_button_lamp(1,i,0)
+						}else {
+							Queue[i+7]=true;
+							driver.Set_button_lamp(1,i,1)
+						}
+						updated=1
+					
+					}
+							
+
+
+				}
 				for i:=0; i<4; i++ {
 					if driver.Get_button_signal(2,i)==0 {
 						pressed[i]=0;
@@ -41,11 +79,17 @@ func Queue_manager_init(stop_chan chan int){
 							Queue[i]=true;
 							driver.Set_button_lamp(2,i,1)
 						}
-						msg.Data=Queue;
-						new_message<-msg
+						updated=1
 						//fmt.Print("Button 2, ",i," is pressed!\r")	
 					}
-			}
+				}
+				if updated==1 {
+					msg.Data=Queue;
+					new_message<-msg
+					updated=0
+
+				}
+			//Viktig med delay på alt av tilstandsjekk!!!!!!!!
 			time.Sleep(100*time.Millisecond) 
 		}	
 
@@ -62,6 +106,20 @@ func Update_lights(Queue_ip Types.Queue_type){
 				driver.Set_button_lamp(2,i,0)
 			}
 		
+		}
+		for i:=4; i<7; i++ {
+			if Queue_ip[i]==true  {
+				driver.Set_button_lamp(0,i-4,1)
+			}else {
+				driver.Set_button_lamp(0,i-4,0)
+			}
+		}
+		for i:=7; i<9; i++ {
+			if Queue_ip[i]==true  {
+				driver.Set_button_lamp(1,i-7,1)
+			}else {
+				driver.Set_button_lamp(1,i-7,0)
+			}
 		}
 
 }
