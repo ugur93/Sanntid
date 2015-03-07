@@ -7,12 +7,25 @@ import(
 const N_BUTTONS=3
 const N_FLOORS = 4
 
-var button_array =[][] int{{BUTTON_UP1,BUTTON_UP2,BUTTON_UP3},
-{BUTTON_DOWN1,BUTTON_DOWN2,BUTTON_DOWN3},{BUTTON_COMMAND1,BUTTON_COMMAND2,BUTTON_COMMAND3,BUTTON_COMMAND4}}
+var button_array =[][] int{
+	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
+    	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
+    	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
+    	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},	
+	/*{BUTTON_UP1,BUTTON_UP2,BUTTON_UP3,BUTTON_UP4},
+	{BUTTON_DOWN1,BUTTON_DOWN2,BUTTON_DOWN3,BUTTON_DOWN4},
+	{BUTTON_COMMAND1,BUTTON_COMMAND2,BUTTON_COMMAND3,BUTTON_COMMAND4},*/
+}
 
-var lamp_array =[][]int{{LIGHT_UP1,LIGHT_UP2,LIGHT_UP3},
-	{LIGHT_DOWN1,LIGHT_DOWN2,LIGHT_DOWN3},
-	{LIGHT_COMMAND1,LIGHT_COMMAND2,LIGHT_COMMAND3,LIGHT_COMMAND4}}
+var lamp_array =[][]int{
+	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
+    	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
+    	{LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
+    	{LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
+	/*{LIGHT_UP1,LIGHT_UP2,LIGHT_UP3,LIGHT_UP4},
+	{LIGHT_DOWN1,LIGHT_DOWN2,LIGHT_DOWN3,LIGHT_DOWN4},
+	{LIGHT_COMMAND1,LIGHT_COMMAND2,LIGHT_COMMAND3,LIGHT_COMMAND4},*/
+}
 
 const(
 	BUTTON_CALL_UP int =0
@@ -105,15 +118,15 @@ func Set_floor_indicator(floor int) {
 func Set_button_lamp(BUTTON_TYPE int, floor int, value int){
 	//fmt.Println(lamp_array[0][0])
 	if value==1 {
-		IO_set_bit(lamp_array[BUTTON_TYPE][floor])
+		IO_set_bit(lamp_array[floor][BUTTON_TYPE])
 	}else{
-		IO_clear_bit(lamp_array[BUTTON_TYPE][floor])
+		IO_clear_bit(lamp_array[floor][BUTTON_TYPE])
 	}
 }
 func Get_button_signal(BUTTON_TYPE int,floor int) int{
 
 
-	if IO_read_bit(button_array[BUTTON_TYPE][floor])==1 {
+	if IO_read_bit(button_array[floor][BUTTON_TYPE])==1 {
 		return 1;
 	}else {
 		return 0;
