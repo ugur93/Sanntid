@@ -1,8 +1,8 @@
 package main
 
-import "fmt"
-import "./driver"
-import "time"
+//import "fmt"
+//import "./driver"
+//import "time"
 import "./Queue_manager"
 //import "time"
 const N_FLOORS int = 4
@@ -69,7 +69,7 @@ func Network_test(){
 
 	
 }
-*/
+
 func Driver_test(){
 
 	driver.Driver_init()
@@ -111,5 +111,5 @@ func Driver_test(){
 	}
 
 
-}
+}*/
 
