@@ -9,13 +9,14 @@ import(
 	"../Types"
 )
 
-const BroadcastAddr="129.241.187.255"
+const BroadcastAddr="192.168.0.255"
 //const BroadcastAddr="192.168.0.255"
 
 
 type Message struct {
 	MessageType string
 	Data Types.Queue_type
+	Mask Types.Queue_type
 	RemoteAddr string
 }
 var localAddr string
@@ -63,9 +64,10 @@ func UDP_send(addr string,send_ch chan Message){
 }
 
 func UDP_receive(port string,receive_ch chan Message){
-	addr,err:=net.ResolveUDPAddr("udp",port)
-	sock,_:=net.ListenUDP("udp",addr)
+	addr,err:=net.ResolveUDPAddr("udp4",port)
+	sock,err:=net.ListenUDP("udp4",addr)
 	if err!=nil {
+		panic(err)
 		fmt.Println(err)
 	}
 	//timeStart:=time.Now();
