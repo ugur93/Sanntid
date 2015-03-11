@@ -1,8 +1,8 @@
 package main
 
-import "fmt"
-import "./driver"
-import "time"
+//import "fmt"
+//import "./driver"
+//import "time"
 import "./Queue_manager"
 //import "time"
 const N_FLOORS int = 4
@@ -10,7 +10,7 @@ const N_FLOORS int = 4
 func main() {
 	stop_chan:=make(chan int,1);
 	stop_chan<-1
-	Queue_manager.Queue_manager_init(stop_chan);
+	Queue_manager.Test_queue_manager_init(stop_chan);
 	stop_chan<-1
 	//go Driver_test();
 	//Network_test();
@@ -70,6 +70,7 @@ func Network_test(){
 	
 }
 */
+/*
 func Driver_test(){
 
 	driver.Driver_init()
@@ -112,4 +113,4 @@ func Driver_test(){
 
 
 }
-
+*/

@@ -17,7 +17,7 @@ func Queue_manager_init(stop_chan chan int){
 	new_message:=make(chan Network.Message,1)
 	Queue_chan:=make(chan int,1) //Bruk det når det leses på Queue
 	elev_chan:=make(chan int,1) //Bruk dette når du leser på Queue_Network array (andre heisenes køer)
-	Order_update:=make(chan string,1)
+	Order_update:=make(chan Network.Message,1)
 	Queue_chan<-1
 	go Network.Network_Manager("20020",new_message,stop_chan,Order_update,elev_chan)
 	/*pressed:=[]int{0,0,0,0}
@@ -131,7 +131,7 @@ func Update_lights(Queue_ip Types.Queue_type){
 		}
 
 }*/
-
+/*
 func Get_orders(){ //STILL IN PRODUCTION, how is the queue going to be
 	outside_order_ch := make(chan [2]int)
 	inside_order_ch := make(chan int)
@@ -159,7 +159,7 @@ func Get_orders(){ //STILL IN PRODUCTION, how is the queue going to be
 		}
 	}
 }
-
+*/
 func Send_order_to_network(){
 
 }

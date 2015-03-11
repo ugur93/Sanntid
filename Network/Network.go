@@ -9,7 +9,7 @@ import(
 	"../Types"
 )
 
-const BroadcastAddr="192.168.0.255"
+const BroadcastAddr="localhost"//"192.168.0.255"
 //const BroadcastAddr="192.168.0.255"
 
 
@@ -28,7 +28,7 @@ func UDP_init(Port string,send_ch,receive_ch chan Message){
 }
 
 func UDP_send(addr string,send_ch chan Message){
-	con,err:=net.Dial("udp4",addr);
+	con,err:=net.Dial("udp",addr);
 	if err!=nil {
 		fmt.Println("Error Dial",err)
 	}
@@ -39,7 +39,6 @@ func UDP_send(addr string,send_ch chan Message){
 	for{
 		select{
 			case msg:=<-send_ch:
-				msgAlive.Data=msg.Data;
 				message,err:=json.Marshal(msg)
 				if err!=nil {
 					fmt.Println("Error with Marshal: ",err)
@@ -64,7 +63,7 @@ func UDP_send(addr string,send_ch chan Message){
 }
 
 func UDP_receive(port string,receive_ch chan Message){
-	addr,err:=net.ResolveUDPAddr("udp4",port)
+	addr,err:=net.ResolveUDPAddr("udp",port)
 	sock,err:=net.ListenUDP("udp4",addr)
 	if err!=nil {
 		panic(err)
