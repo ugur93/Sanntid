@@ -14,7 +14,7 @@ var network_TimeStamp=map[string]time.Time{} //private
 var Queue_Network = map[string]Types.Queue_type{}
 var numberOfElevators int
 var ackFinished int
-func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Order_update chan Message,elev_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
+func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Order_update chan Message,Queue_Network_lock_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
 
 
 	
@@ -52,24 +52,24 @@ func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Ord
 				time_chan<-1
 				if _,ok:=Queue_Network[ipAddr]; ok==false {
 					//New Computer connected, put in map
-					<-elev_chan
+					<-Queue_Network_lock_chan
 					Queue_Network[ipAddr]=msg.Data
-					elev_chan<-1
+					Queue_Network_lock_chan<-1
 					// what if elevator have order already????
 					fmt.Println(ipAddr,"Connected to the network")
 					numberOfElevators=numberOfElevators+1
 				}else if msg.MessageType == "Update" {
-						<-elev_chan
+						<-Queue_Network_lock_chan
 						Queue_Network[ipAddr]=msg.Data
-						elev_chan<-1
+						Queue_Network_lock_chan<-1
 						fmt.Println("Updated")
 						send_ch<-ack
 						//Notify QueueManager		
 					//Send to QueueManager
 				}else if msg.MessageType == "New order" {
-						<-elev_chan
+						<-Queue_Network_lock_chan
 						Queue_Network[ipAddr]=msg.Data
-						elev_chan<-1
+						Queue_Network_lock_chan<-1
 						Order_update<-msg
 						send_ch<-ack
 
@@ -77,10 +77,7 @@ func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Ord
 						ack_chan<-msg
 
 				}
-					
-				
-				
-				
+	
 			case msg:=<-new_message:
 				send_ch<-msg
 				go waitforack(msg,ack_chan,send_ch)
@@ -127,7 +124,7 @@ func waitforack(msg Message,ackchan,send_ch chan Message){
 	fmt.Println("Recieved ack from all")
 }
 
-func check_ComputerConnection(time_chan chan int,elev_chan chan int){
+func check_ComputerConnection(time_chan chan int,Queue_Network_lock_chan chan int){
 	for{
 
 		
@@ -148,12 +145,12 @@ func check_ComputerConnection(time_chan chan int,elev_chan chan int){
 				if timeEnd.Sub(timeStart)>=300*time.Millisecond {
 					//Computer Disconnected from network or not responding (loop?)
 					//Comp_chan in use only if another computer is disconnected
-					<-elev_chan
+					<-Queue_Network_lock_chan
 					delete(Queue_Network,ipAddr)
 					delete(network_TimeStamp,ipAddr)
 					//fmt.Println("Lenght is: ",builtin.len(Queue_Network))
 					//fmt.Println(Queue_Network);	
-					elev_chan<-1
+					Queue_Network_lock_chan<-1
 					//Slett fra Computers arrayet
 
 					fmt.Println(ipAddr,"Disconnected from the network")

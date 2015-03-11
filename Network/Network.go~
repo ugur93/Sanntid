@@ -9,13 +9,14 @@ import(
 	"../Types"
 )
 
+//const BroadcastAddr="localhost"//"192.168.0.255"
 const BroadcastAddr="129.241.187.255"
-//const BroadcastAddr="192.168.0.255"
 
 
 type Message struct {
 	MessageType string
 	Data Types.Queue_type
+	Mask Types.Queue_type
 	RemoteAddr string
 }
 var localAddr string
@@ -27,7 +28,7 @@ func UDP_init(Port string,send_ch,receive_ch chan Message){
 }
 
 func UDP_send(addr string,send_ch chan Message){
-	con,err:=net.Dial("udp4",addr);
+	con,err:=net.Dial("udp",addr);
 	if err!=nil {
 		fmt.Println("Error Dial",err)
 	}
@@ -38,7 +39,6 @@ func UDP_send(addr string,send_ch chan Message){
 	for{
 		select{
 			case msg:=<-send_ch:
-				msgAlive.Data=msg.Data;
 				message,err:=json.Marshal(msg)
 				if err!=nil {
 					fmt.Println("Error with Marshal: ",err)
@@ -64,15 +64,17 @@ func UDP_send(addr string,send_ch chan Message){
 
 func UDP_receive(port string,receive_ch chan Message){
 	addr,err:=net.ResolveUDPAddr("udp",port)
-	sock,_:=net.ListenUDP("udp",addr)
+	sock,err:=net.ListenUDP("udp",addr)
 	if err!=nil {
+		panic(err)
 		fmt.Println(err)
 	}
 	//timeStart:=time.Now();
 	msg:=Message{}
+	buffer:=make([]byte,1024)
 	for{	
 		
-		buffer:=make([]byte,1024)
+		
 		n,Raddr,err:=sock.ReadFromUDP(buffer)
 		if err!=nil{
 			fmt.Println(err)

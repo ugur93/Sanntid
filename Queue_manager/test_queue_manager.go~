@@ -1,5 +1,5 @@
 package Queue_manager
-/*
+
 import "../Network"
 import "../Types"
 import ("fmt"
@@ -7,7 +7,7 @@ import ("fmt"
 		//"bufio"
 		)
 
-
+/*
 func Test_queue_manager_init(stop_chan chan int){
 	new_message:=make(chan Network.Message,1)
 	Queue_chan:=make(chan int,1) //Bruk det når det leses på Queue

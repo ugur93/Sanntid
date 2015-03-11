@@ -9,8 +9,8 @@ import(
 	"../Types"
 )
 
-const BroadcastAddr="localhost"//"192.168.0.255"
-//const BroadcastAddr="192.168.0.255"
+//const BroadcastAddr="localhost"//"192.168.0.255"
+const BroadcastAddr="129.241.187.255"
 
 
 type Message struct {
@@ -64,7 +64,7 @@ func UDP_send(addr string,send_ch chan Message){
 
 func UDP_receive(port string,receive_ch chan Message){
 	addr,err:=net.ResolveUDPAddr("udp",port)
-	sock,err:=net.ListenUDP("udp4",addr)
+	sock,err:=net.ListenUDP("udp",addr)
 	if err!=nil {
 		panic(err)
 		fmt.Println(err)

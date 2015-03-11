@@ -10,7 +10,7 @@ const N_FLOORS int = 4
 func main() {
 	stop_chan:=make(chan int,1);
 	stop_chan<-1
-	Queue_manager.Test_queue_manager_init(stop_chan);
+	Queue_manager.Queue_manager_init(stop_chan);
 	stop_chan<-1
 	//go Driver_test();
 	//Network_test();

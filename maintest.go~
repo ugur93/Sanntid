@@ -1,8 +1,8 @@
 package main
 
-import "fmt"
-import "./driver"
-import "time"
+//import "fmt"
+//import "./driver"
+//import "time"
 import "./Queue_manager"
 //import "time"
 const N_FLOORS int = 4
@@ -65,11 +65,12 @@ func Network_test(){
 			fmt.Println("BroadcastPort: ",melding.BroadcastPort)
 			fmt.Println("Remote Address: ",melding.RemoteAddr)
 			fmt.Println("-------------------------------------------")
-		}*/
+		}
 
 	
 }
 */
+/*
 func Driver_test(){
 
 	driver.Driver_init()
@@ -112,4 +113,4 @@ func Driver_test(){
 
 
 }
-
+*/
