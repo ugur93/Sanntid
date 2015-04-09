@@ -97,7 +97,9 @@ func Get_orders(Queue_Network_lock_chan chan int, Broadcast_order chan Network.M
 			}
 		}
 		case External_order:=<Order_external:
-			Calculate_order_cost_queue(External_order)
+			Calculate_order_cost_queue(External_order) //Queue=External_order.Data Mask=External_order.Mask
+		case something:=<-NetworkStateUpdate:
+			RedistrubuteOrdersInNewNetwork(something)
 	}
 }
 
@@ -266,7 +268,8 @@ func Send_order_to_network(){
 }
 
 func Receive_order_from_network(){
-for i:=0; i<4; i++ {
+
+	for i:=0; i<4; i++ {
 					if i!=3 {
 						if driver.Get_button_signal(0,i)==0 {
 							pressed_UP[i]=0;

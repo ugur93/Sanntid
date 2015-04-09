@@ -44,7 +44,7 @@ func Driver_init()(current_floor int){
 	if !IO_init() {
 		fmt.Println("Could not initialize IO module")
 	}
-	for i:=0; i<4; i++ {
+	for i:=1; i<4; i++ {
 		if i < 3 {
 			Set_button_lamp(0,i,0)
 			Set_button_lamp(1,i,0)
