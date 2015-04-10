@@ -55,7 +55,7 @@ func Run_elevator(Queue_Network_lock_chan chan int){
 
 
 }
-
+//Denne sjekker etter bestillinger på lokal heis, og sjekker bestillinger fra nettverket. 
 func Get_orders(Queue_Network_lock_chan chan int, Broadcast_order chan Network.Message,Order_external chan Network.Message){ //STILL IN PRODUCTION, how is the queue going to be
 	outside_order_ch := make(chan [2]int)
 	inside_order_ch := make(chan int)
@@ -67,17 +67,16 @@ func Get_orders(Queue_Network_lock_chan chan int, Broadcast_order chan Network.M
 	for{
 		select{
 		case outside_order_array := <- outside_order_ch:
-			if isAlreadyinQueue(outside_order_array,Queue_Network_lock_chan) {
+			floor := outside_order_array[0]
+			order_type := outside_order_array[1]
+			if isAlreadyinQueue(floor, order_type, Queue_Network_lock_chan) {
 				continue
 			}
 			else{
-				floor := outside_order_array[0]
-				order_type := outside_order_array[1]
 				msg.Mask[(floor-1) + 3*order_type)]=1
-				Broadcast_order<-msg
 				msg.MessageType="New order"
-				Send_order_to_network()
-				"Add order to queue"
+				Broadcast_order<-msg
+				calculate_order_cost(Queue_Network_lock_chan, )
 			}
 		case inside_order := <- inside_order_ch:
 			order_array := []int{inside_order,2}
@@ -93,13 +92,12 @@ func Get_orders(Queue_Network_lock_chan chan int, Broadcast_order chan Network.M
 				msg.Data=Queue
 				msg.MessageType="Update"
 				Broadcast_order<-msg
-				"Add order to queue"
 			}
 		}
 		case External_order:=<Order_external:
 			Calculate_order_cost_queue(External_order) //Queue=External_order.Data Mask=External_order.Mask
 		case something:=<-NetworkStateUpdate:
-			RedistrubuteOrdersInNewNetwork(something)
+			Redistribute_orders_in_new_network(something)
 	}
 }
 
@@ -172,13 +170,13 @@ func calculate_order_cost(Queue_Network_lock_chan chan int,Queue_lock_chan chan 
 	Queue_Network_lock_chan<-1
 	order_floor := outside_order_array[0]
 	order_type := outside_order_array[1]
-	old_cost:=0
+	highest_cost:=0
 	cost:=0
 	my_cost:=0
+	highest_cost_ipAddr string
 	for ipAddr,Queue_N := range temp_Queue_Network {
 		Direction:=Queue_N[Types.N_FLOORS+2*(Types.N_FLOORS-1)]
 		Floor:=Queue_N[Types.N_FLOORS+2*(Types.N_FLOORS-1)+1]
-		old_cost=cost
 		cost=0
 		if order_type==Driver.BUTTON_CALL_UP {
 			if DIRECTION == Driver.DIRN_UP {
@@ -237,10 +235,11 @@ func calculate_order_cost(Queue_Network_lock_chan chan int,Queue_lock_chan chan 
 			
 			}
 		}
-		if my_cost>cost {
-			break
-		
+		if cost > highest_cost {
+			highest_cost = cost
+			highest_cost_ipAddr = ipAddr
 		}
+
 			
 	
 	}
@@ -248,13 +247,12 @@ func calculate_order_cost(Queue_Network_lock_chan chan int,Queue_lock_chan chan 
 
 
 }
-func isAlreadyinQueue(outside_order_array [2]int, Queue_Network_lock_chan chan int) (bool) {
+//Denne endres til å ta inn floor og order_type istedenfor order_array
+func isAlreadyinQueue(floor int, order_type int, Queue_Network_lock_chan chan int) (bool) {
 	<-Queue_Network_lock_chan
 	temp_Queue_Network:=Network.Queue_Network
 	Queue_Network_lock_chan<-1
 	for ipAddr,Queue_N := range temp_Queue_Network {
-		floor := outside_order_array[0]
-		order_type := outside_order_array[1]
 		if Queue_N[(floor-1) + 3*order_type)] {
 			return true
 		}
@@ -263,11 +261,11 @@ func isAlreadyinQueue(outside_order_array [2]int, Queue_Network_lock_chan chan i
 
 }
 
-func Send_order_to_network(){
+
+func Redistribute_orders_in_new_network(){
 
 }
-
-func Receive_order_from_network(){
+//func Receive_order_from_network(){
 
 	for i:=0; i<4; i++ {
 					if i!=3 {
@@ -333,4 +331,4 @@ func Receive_order_from_network(){
 			//Viktig med delay på alt av tilstandsjekk!!!!!!!!
 			time.Sleep(100*time.Millisecond) 
 		}	
-}
+//}
