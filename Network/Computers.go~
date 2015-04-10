@@ -72,7 +72,6 @@ func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Ord
 						Queue_Network_lock_chan<-1
 						Order_update<-msg
 						send_ch<-ack
-
 				}else if msg.MessageType == "ack" {
 						ack_chan<-msg
 
@@ -175,6 +174,10 @@ func check_ComputerConnection(time_chan chan int,Queue_Network_lock_chan chan in
 
 
 }
+struct {
+    state="Disconnected"
+    ip=213
+    Queue
 
 //Maybe a message handler module????
 //func Broadcast_new_order(

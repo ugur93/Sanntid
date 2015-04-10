@@ -13,7 +13,7 @@ import(
 var network_TimeStamp=map[string]time.Time{} //private
 var Queue_Network = map[string]Types.Queue_type{}
 var numberOfElevators int
-var ackFinished int
+var int ackFinished
 func Network_Manager(Port string,new_message chan Message,stop_chan chan int,Order_update chan Message,Queue_Network_lock_chan chan int){ //,Ip_chan chan string,Comp_chan chan map[string]int){
 
 
