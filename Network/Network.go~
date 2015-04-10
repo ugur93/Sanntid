@@ -18,6 +18,7 @@ type Message struct {
 	Data Types.Queue_type
 	Mask Types.Queue_type
 	RemoteAddr string
+	AcknAddr string
 }
 var localAddr string
 
@@ -39,6 +40,7 @@ func UDP_send(addr string,send_ch chan Message){
 	for{
 		select{
 			case msg:=<-send_ch:
+				msg.RemoteAddr=localAddr
 				message,err:=json.Marshal(msg)
 				if err!=nil {
 					fmt.Println("Error with Marshal: ",err)
