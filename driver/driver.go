@@ -129,13 +129,14 @@ func Get_button_signal(BUTTON_TYPE int,floor int) int{
 
 	if IO_read_bit(button_array[floor-1][BUTTON_TYPE])==1 {
 		return 1;
-	}else {
+	} else {
 		return 0;
 	}
 }
 
-func Check_for_outside_order(outside_order_ch chan [2]int){
-	order_array := [2]int
+func Check_for_outside_order(outside_order_ch chan [2]int) {
+
+	order_array := [2]int{}
 	
 	pressed_UP:=[]int{0,0,0,0}
 	pressed_DOWN:=[]int{0,0,0,0}
@@ -146,7 +147,7 @@ func Check_for_outside_order(outside_order_ch chan [2]int){
 			if Get_button_signal(BUTTON_CALL_DOWN, floor)==0 && pressed_DOWN[floor]==1 {
 					pressed_DOWN[floor]=0;
 			
-			}else if Get_button_signal(BUTTON_CALL_UP, floor)==0 && pressed_UP[floor]==1 {
+			} else if Get_button_signal(BUTTON_CALL_UP, floor)==0 && pressed_UP[floor]==1 {
 					pressed_UP[floor]=0
 			}
 			
@@ -156,30 +157,29 @@ func Check_for_outside_order(outside_order_ch chan [2]int){
 				pressed_DOWN[floor]=1
 				order_array[1] = BUTTON_CALL_DOWN
 				order_array[0] = floor
-				outside_order_ch <= order_array
-			}
-			else if Get_button_signal(BUTTON_CALL_UP, floor)==1&&pressed_UP[floor]==0 {
+				outside_order_ch <- order_array
+			} else if Get_button_signal(BUTTON_CALL_UP, floor)==1&&pressed_UP[floor]==0 {
 				pressed_UP[floor]=1
 				order_array[0] = BUTTON_CALL_UP
 				order_array[1] = floor
-				outside_order_ch <= order_array
+				outside_order_ch <- order_array
 			}
 		}
 		time.Sleep(10*time.Millisecond) 
 	}
 }
 func Check_for_inside_order(inside_order_ch chan int){
-	order int
+	var order int
 	pressed:=[]int{0,0,0,0}
 	for {
 		for floor := 1; floor < N_FLOORS + 1; floor++ {
 			if Get_button_signal(BUTTON_COMMAND, floor) == 0 && pressed[floor] ==1 {
 				pressed[floor] = 0
 			}
-			if Get_button_signal(BUTTON_COMMAND, floor) && pressed[floor] == 0 {
+			if Get_button_signal(BUTTON_COMMAND, floor) == 1 && pressed[floor] == 0 {
 				pressed[floor] = 1
 				order = floor
-				inside_order_ch <= order
+				inside_order_ch <- order
 			}
 		}
 		time.Sleep(10*time.Millisecond)
@@ -188,8 +188,7 @@ func Check_for_inside_order(inside_order_ch chan int){
 func Get_to_defined_state()(current_floor int){
 	if Get_floor_sensor_signal() != -1 {
 		return Get_floor_sensor_signal()
-	}
-	else {
+	} else {
 		Set_motor_direction(DIRN_DOWN)
 		for {
 			if Get_floor_sensor_signal() != -1 {
