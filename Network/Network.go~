@@ -15,10 +15,10 @@ const BroadcastAddr="129.241.187.255"
 
 type Message struct {
 	MessageType string
-	Data Types.Queue_type
-	Mask Types.Queue_type
+	Data Types.Order_queue
+	Mask Types.Order_queue
 	RemoteAddr string
-	AcknAddr string
+	AckAddr string
 }
 var localAddr string
 
@@ -35,7 +35,7 @@ func UDP_send(addr string,send_ch chan Message){
 	}
 	localAddr=con.LocalAddr().String()
 	fmt.Println("My ip adress is: ",con.LocalAddr())
-	msgAlive:=Message{MessageType: "I am alive",RemoteAddr: " "}
+	msgAlive:=Message{MessageType: "I am alive"}
 	//time.Sleep(10000*time.Second)
 	for{
 		select{
