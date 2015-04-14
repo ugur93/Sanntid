@@ -248,6 +248,7 @@ func calculate_order_cost(Queue_Network_lock_chan chan int,Queue_lock_chan chan 
 
 }
 //Denne endres til å ta inn floor og order_type istedenfor order_array
+//Føler at låsen her er ubrukelig
 func isAlreadyinQueue(floor int, order_type int, Queue_Network_lock_chan chan int) (bool) {
 	<-Queue_Network_lock_chan
 	temp_Queue_Network:=Network.Queue_Network
