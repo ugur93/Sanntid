@@ -11,11 +11,11 @@ import(
 type ConnectionStatus struct {
 	State string
 	IpAddr string
-	Queue Types.Queue_type
+	Queue Types.Order_queue
 }
 
 var network_TimeStamp=map[string]time.Time{} //private
-var Queue_Network = map[string]Types.Queue_type{}
+var Queue_Network = map[string]Types.Order_queue{}
 var numberOfElevators int
 var ackFinished int
 
@@ -217,7 +217,7 @@ func checkConnectionStatus(time_chan chan int,Queue_Network_lock_chan chan int){
 
 }
 
-func printAllOrders(temp_Queue_Network map[string]Types.Queue_type){
+func printAllOrders(temp_Queue_Network map[string]Types.Order_queue){
 	fmt.Print("\033c")
 	fmt.Println("------------------------List of Elevator Queues-------------------------------")
 	fmt.Println("ipAddr                 | O1 | O2 | O3 | N1 | N2 | N3 | 1  | 2  | 3  | 4  | Dir | F |")

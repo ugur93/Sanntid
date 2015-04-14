@@ -6,7 +6,7 @@ import "../Types"
 import "time"
 //import "../driver" //HOW DOES ONE DO THIS
 
-var Queue Types.Queue_type;
+var Queue Types.Order_queue;
 
 func Queue_manager_init(stop_chan chan int){
 	//Queue_chan:=make(chan int);
@@ -25,7 +25,7 @@ func Queue_manager_init(stop_chan chan int){
 	stop_chan<-1
 }
 
-func Update_lights(Queue_ip Types.Queue_type){
+func Update_lights(Queue_ip Types.Order_queue){
 		for i:=0; i<4; i++ {
 			if Queue_ip[i]==1  {
 				driver.Set_button_lamp(2,i,1)
@@ -101,14 +101,14 @@ func Get_orders(Queue_Network_lock_chan chan int, Broadcast_order chan Network.M
 	}
 }
 
-func calculate_order_cost_single_queue(floor int, queue Types.Queue_type){
+func calculate_order_cost_single_queue(floor int, queue Types.Order_queue){
 	//First check if it can take order on this floor now
 	//USES MANY IMAGINARY VARIABLES
 	cost = 1 + calculate_order_cost_local_queue(next_floor(queue), queue)
 	return cost
 }
 
-func next_floor(Queue_N Types.Queue_type)(next_floor int, Queue_N Types.Queue_type){
+func next_floor(Queue_N Types.Order_queue)(next_floor int, Queue_N Types.Order_queue){
 	if direction == Driver.DIRN_UP {
 		for floor := current_floor ; floor < Types.N_FLOORS ; floor++ {
 			if floor!=Types.N_FLOORS && Queue_N[floor-1]==1 {

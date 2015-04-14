@@ -15,8 +15,8 @@ const BroadcastAddr="129.241.187.255"
 
 type Message struct {
 	MessageType string
-	Data Types.Queue_type
-	Mask Types.Queue_type
+	Data Types.Order_queue
+	Mask Types.Order_queue
 	RemoteAddr string
 	AckAddr string
 }
