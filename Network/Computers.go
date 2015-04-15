@@ -20,7 +20,7 @@ var numberOfElevators int
 var ackFinished int
 
 //Ip:: 118, 155, 145
-func Network_Manager_init(Port string,Broadcast_message_ch chan Message,stop_chan chan int,New_Order chan Message,Queue_Network_lock_chan chan int){ 
+func Network_Manager_init(Port string,BroadcastOrderCh chan Message,stop_chan chan int,ReceiveOrderCh chan Message,Queue_Network_lock_chan chan int){ 
 
 
 	//initialize channels
@@ -40,24 +40,25 @@ func Network_Manager_init(Port string,Broadcast_message_ch chan Message,stop_cha
 	UDP_init(Port,send_ch,receive_ch);
 	go checkConnectionStatus(time_chan,Queue_Network_lock_chan)
 	
-	WaitForMessages(Queue_Network_lock_chan,time_chan,ack_chan,send_ch,receive_ch,Broadcast_message_ch)
+	WaitForMessages(Queue_Network_lock_chan,time_chan,ack_chan,send_ch,receive_ch,ReceiveOrderCh,BroadcastOrderCh)
 	
 
 }
 
-func WaitForMessages(Queue_Network_lock_chan chan int, time_chan chan int, ack_chan,send_ch,receive_ch,Broadcast_message_ch chan Message) {
+func WaitForMessages(Queue_Network_lock_chan chan int, time_chan chan int, ack_chan,send_ch,receive_ch,ReceiveOrderCh,BroadcastOrderCh chan Message) {
 
 	for{
 		select{
 			case msg:=<-receive_ch:
-				go HandleNewMessage(msg,Queue_Network_lock_chan,time_chan,ack_chan,send_ch,receive_ch)
-			case msg:=<-Broadcast_message_ch:
+				go HandleNewMessage(msg,Queue_Network_lock_chan,time_chan,ack_chan,send_ch,receive_ch,ReceiveOrderCh)
+			case msg:=<-BroadcastOrderCh:
 				//Update This Computer (More for printing)
 				queue_Network["This Computer"]=msg.Data
 				go printAllOrders(Queue_Network)
 				
 				go BroadcastMessage(msg,ack_chan,send_ch)
 			}
+
 			
 
 	}
@@ -97,6 +98,7 @@ func HandleNewMessage(msg Message,Queue_Network_lock_chan chan int, time_chan ch
 						Queue_Network_lock_chan<-1
 						
 						//Send ack
+						ReceiveOrderCh<-msg
 						ack.AckAddr=ipAddr
 						send_ch<-ack
 						//Notify QueueManager		
@@ -109,8 +111,10 @@ func HandleNewMessage(msg Message,Queue_Network_lock_chan chan int, time_chan ch
 						queue_Network[ipAddr]=msg.Data
 						go printAllOrders(Queue_Network)
 						Queue_Network_lock_chan<-1
-						
-						//New_Order<-msg
+
+						if msg.RecipientAddr==localAddr {
+							ReceiveOrderCh<-msg
+						}
 						
 						//Send ack
 						ack.AckAddr=ipAddr
@@ -196,6 +200,7 @@ func checkConnectionStatus(time_chan chan int,Queue_Network_lock_chan chan int){
 					
 					//Delete The computer from map
 					<-Queue_Network_lock_chan
+					//Elevator died, redestribute orders
 					//QueueData:=Queue_Network[ipAddr]
 					delete(queue_Network,ipAddr)
 					delete(network_TimeStamp,ipAddr)	

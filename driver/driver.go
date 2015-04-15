@@ -9,7 +9,7 @@ const N_BUTTONS=3
 const N_FLOORS = 4
 
 var button_array =[][] int{
-	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
+		{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
     	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
     	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
     	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},	
@@ -40,11 +40,12 @@ const (
 	DIRN_UP int=1
 
 )
-func Driver_init()(current_floor int){
+func Driver_init()(int){
 	if !IO_init() {
 		fmt.Println("Could not initialize IO module")
 	}
-	for i:=1; i<4; i++ {
+	current_floor:=Get_to_defined_state()
+	for i:=0; i<4; i++ {
 		if i < 3 {
 			Set_button_lamp(0,i,0)
 			Set_button_lamp(1,i,0)
@@ -54,7 +55,7 @@ func Driver_init()(current_floor int){
 	Set_stop_lamp(0)
 	Set_door_lamp(0)
 	Set_floor_indicator(0)
-	return 1
+	return current_floor
 	//current_floor = Get_to_defined_state()
 }
 func Set_motor_direction(DIRN int){
@@ -119,15 +120,15 @@ func Set_floor_indicator(floor int) {
 func Set_button_lamp(BUTTON_TYPE int, floor int, value int){
 	//fmt.Println(lamp_array[0][0])
 	if value==1 {
-		IO_set_bit(lamp_array[floor-1][BUTTON_TYPE])
+		IO_set_bit(lamp_array[floor][BUTTON_TYPE])
 	}else{
-		IO_clear_bit(lamp_array[floor-1][BUTTON_TYPE])
+		IO_clear_bit(lamp_array[floor][BUTTON_TYPE])
 	}
 }
 func Get_button_signal(BUTTON_TYPE int,floor int) int{
 
 
-	if IO_read_bit(button_array[floor-1][BUTTON_TYPE])==1 {
+	if IO_read_bit(button_array[floor][BUTTON_TYPE])==1 {
 		return 1;
 	} else {
 		return 0;
@@ -141,7 +142,7 @@ func Check_for_outside_order(outside_order_ch chan [2]int) {
 	pressed_UP:=[]int{0,0,0,0}
 	pressed_DOWN:=[]int{0,0,0,0}
 	for {
-		for floor := 1; floor < N_FLOORS + 1; floor++ {
+		for floor := 0; floor < N_FLOORS; floor++ {
 		
 		
 			if Get_button_signal(BUTTON_CALL_DOWN, floor)==0 && pressed_DOWN[floor]==1 {
@@ -150,29 +151,26 @@ func Check_for_outside_order(outside_order_ch chan [2]int) {
 			} else if Get_button_signal(BUTTON_CALL_UP, floor)==0 && pressed_UP[floor]==1 {
 					pressed_UP[floor]=0
 			}
-			
-			
-			
-			if Get_button_signal(BUTTON_CALL_DOWN, floor)==1&&pressed_DOWN[floor]==0 {
+			if floor!=0&&Get_button_signal(BUTTON_CALL_DOWN, floor)==1&&pressed_DOWN[floor]==0 {
 				pressed_DOWN[floor]=1
 				order_array[1] = BUTTON_CALL_DOWN
 				order_array[0] = floor
 				outside_order_ch <- order_array
-			} else if Get_button_signal(BUTTON_CALL_UP, floor)==1&&pressed_UP[floor]==0 {
+			} else if floor!=3&&Get_button_signal(BUTTON_CALL_UP, floor)==1&&pressed_UP[floor]==0 {
 				pressed_UP[floor]=1
-				order_array[0] = BUTTON_CALL_UP
-				order_array[1] = floor
+				order_array[1] = BUTTON_CALL_UP
+				order_array[0] = floor
 				outside_order_ch <- order_array
 			}
 		}
-		time.Sleep(10*time.Millisecond) 
+		time.Sleep(100*time.Millisecond) 
 	}
 }
 func Check_for_inside_order(inside_order_ch chan int){
 	var order int
 	pressed:=[]int{0,0,0,0}
 	for {
-		for floor := 1; floor < N_FLOORS + 1; floor++ {
+		for floor := 1; floor < N_FLOORS; floor++ {
 			if Get_button_signal(BUTTON_COMMAND, floor) == 0 && pressed[floor] ==1 {
 				pressed[floor] = 0
 			}
@@ -182,7 +180,7 @@ func Check_for_inside_order(inside_order_ch chan int){
 				inside_order_ch <- order
 			}
 		}
-		time.Sleep(10*time.Millisecond)
+		time.Sleep(100*time.Millisecond)
 	}
 }
 func Get_to_defined_state()(current_floor int){
