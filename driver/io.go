@@ -22,7 +22,6 @@ func IO_write_analog(channel int,value int){
 }
 
 func IO_read_bit(channel int) int{
-
 	return int(C.io_read_bit(C.int(channel)))	
 }
 
