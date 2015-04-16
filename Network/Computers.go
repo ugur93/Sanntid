@@ -49,17 +49,19 @@ func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Messa
 }
 
 func WaitForMessages(Queue_Network_lock_chan chan int, time_chan chan int, ack_chan,send_ch,receive_ch,ReceiveOrderCh,BroadcastOrderCh chan Message) {
-
+	
 	for{
 		select{
 			case msg:=<-receive_ch:
 				go HandleNewMessage(msg,Queue_Network_lock_chan,time_chan,ack_chan,send_ch,receive_ch,ReceiveOrderCh)
 			case msg:=<-BroadcastOrderCh:
 				//Update This Computer (More for printing)
-				Queue_Network["This Computer"]=msg.Data
+				//Queue_Network["This Computer             "]=msg.Data
 				//go printAllOrders(Queue_Network)
-				
-				go BroadcastMessage(msg,ack_chan,send_ch)
+				fmt.Println(len(Queue_Network),msg.RecipientAddr)
+				if numberOfElevators!=0 {
+					go BroadcastMessage(msg,ack_chan,send_ch)
+				}
 			}
 
 			
@@ -74,7 +76,7 @@ func HandleNewMessage(msg Message,Queue_Network_lock_chan chan int, time_chan ch
 				
 				ipAddr:=msg.RemoteAddr
 				ack:=Message{MessageType:"ack"}
-				
+				NewElevator:=Message{MessageType:"NewElevator"}
 				//Update timestamp for the ipaddress
 				<-time_chan
 				network_TimeStamp[ipAddr]=time.Now()
@@ -86,7 +88,8 @@ func HandleNewMessage(msg Message,Queue_Network_lock_chan chan int, time_chan ch
 					<-Queue_Network_lock_chan
 					Queue_Network[ipAddr]=msg.Data
 					Queue_Network_lock_chan<-1
-					
+					NewElevator.Data=msg.Data
+					ReceiveOrderCh<-NewElevator
 					// Notify QueueManager with the Queue
 					//Connection:=ConnectionStatus{State:"Connected",IpAddr:ipAddr,Queue:msg.Data}
 					fmt.Println(ipAddr,"Connected to the network")
@@ -107,14 +110,7 @@ func HandleNewMessage(msg Message,Queue_Network_lock_chan chan int, time_chan ch
 						//Notify QueueManager		
 						//Send to QueueManager
 						
-				}else if msg.MessageType == "New order" {
-				
-						//Update Queue map
-						<-Queue_Network_lock_chan
-						Queue_Network[ipAddr]=msg.Data
-						go printAllOrders(Queue_Network)
-						Queue_Network_lock_chan<-1
-
+				}else if msg.MessageType == "NewOrder" {
 						if msg.RecipientAddr==localAddr {
 							ReceiveOrderCh<-msg
 						}
@@ -169,7 +165,7 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message){
 					default:
 						if time.Now().Sub(TTR)>200*time.Millisecond {
 							Timeouts=Timeouts+1
-							if Timeouts==10 {
+							if Timeouts==5 {
 								fmt.Println("Timed out too many times, something is wrong")
 								finished=1
 								break
@@ -230,11 +226,14 @@ func checkConnectionStatus(time_chan chan int,Queue_Network_lock_chan chan int,R
 func isMaster()(bool){
 	s:= strings.Split(localAddr,":")
 	myip,_:=strconv.Atoi(s[1])// string to int
-	for ipAddr,_:=Queue_Network {
-		s:=strings.Split(ipAddr,":")
-		nextip,_:=strconv.Atoi(s[1])
-		if myip>nextip {
-			return false
+	if numberOfElevators>0 {
+		for ipAddr,_:=range Queue_Network {
+			s:=strings.Split(ipAddr,":")
+			nextip,err:=strconv.Atoi(s[1])
+			if err!=nil {fmt.Println(err)}
+			if myip>nextip {
+				return false
+			}
 		}
 	}
 	return true
@@ -245,18 +244,18 @@ func GetQueueNetwork()(map[string]Types.Order_queue){
 }
 
 func printAllOrders(temp_Queue_Network map[string]Types.Order_queue){
-	fmt.Print("\033c")
+	//fmt.Print("\033c")
 	fmt.Println("------------------------List of Elevator Queues-------------------------------")
-	fmt.Println("ipAddr                 | O1 | O2 | O3 | N1 | N2 | N3 | 1  | 2  | 3  | 4  | Dir | F |")
+	fmt.Println("ipAddr                 | O1 | O2 | O3 | N1 | N2 | N3 | 1  | 2  | 3  | 4  |")
 	fmt.Println("--------------------------------------------------------------------------------------")
 	for ipAddr,Queue:=range temp_Queue_Network {
 		fmt.Print(ipAddr+"    ")
-		for _,k:=range Queue.Outside_order_up {
-			fmt.Print(k)
+		for i:=0; i<3; i++ {
+			fmt.Print(Queue.Outside_order_up[i])
 			fmt.Print("    ")
 		}
-		for _,k:=range Queue.Outside_order_down {
-			fmt.Print(k)
+		for i:=1; i<4; i++ {
+			fmt.Print(Queue.Outside_order_down[i])
 			fmt.Print("    ")			
 		}
 		for _,k:=range Queue.Inside_order {

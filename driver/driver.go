@@ -48,6 +48,8 @@ func Driver_init()(int){
 	for i:=0; i<4; i++ {
 		if i < 3 {
 			Set_button_lamp(0,i,0)
+		}
+		if i!=0 {
 			Set_button_lamp(1,i,0)
 		}
 		Set_button_lamp(2,i,0)
@@ -170,7 +172,7 @@ func Check_for_inside_order(inside_order_ch chan int){
 	var order int
 	pressed:=[]int{0,0,0,0}
 	for {
-		for floor := 1; floor < N_FLOORS; floor++ {
+		for floor := 0; floor < N_FLOORS; floor++ {
 			if Get_button_signal(BUTTON_COMMAND, floor) == 0 && pressed[floor] ==1 {
 				pressed[floor] = 0
 			}

@@ -1,5 +1,5 @@
 package Queue_manager
-
+/*
 import "../driver"
 import "../Network"
 import "../Types"
@@ -327,4 +327,4 @@ func Redistribute_orders_in_new_network(){
 			//Viktig med delay på alt av tilstandsjekk!!!!!!!!
 			time.Sleep(100*time.Millisecond) 
 		}	
-//}
+//}*/

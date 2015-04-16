@@ -1,5 +1,5 @@
 package Queue_manager
-
+/*
 import "../Network"
 import "../Types"
 import "../driver"
@@ -96,6 +96,6 @@ func Test_queue_manager_init(stop_chan chan int){
 	
 	
 	}
-	
+	*/
 
 
