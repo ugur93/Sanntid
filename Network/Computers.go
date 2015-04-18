@@ -21,7 +21,7 @@ var Queue_Network = map[string]Types.Order_queue{}
 var numberOfElevators int
 var ackFinished int
 
-//Ip:: 118, 155, 145
+//Ip:: 118, 155, 145.146,154,141
 func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Message,stop_chan chan int){ 
 
 
@@ -89,6 +89,7 @@ func HandleNewMessage(msg Message,Queue_Network_lock_chan chan int, time_chan ch
 					Queue_Network[ipAddr]=msg.Data
 					Queue_Network_lock_chan<-1
 					NewElevator.Data=msg.Data
+					NewElevator.Mask=msg.Mask
 					ReceiveOrderCh<-NewElevator
 					// Notify QueueManager with the Queue
 					//Connection:=ConnectionStatus{State:"Connected",IpAddr:ipAddr,Queue:msg.Data}
