@@ -185,7 +185,7 @@ func Check_for_inside_order(inside_order_ch chan int){
 		time.Sleep(100*time.Millisecond)
 	}
 }
-func Get_to_defined_state()(current_floor int){
+func Get_to_defined_state()(int){
 	if Get_floor_sensor_signal() != -1 {
 		return Get_floor_sensor_signal()
 	} else {

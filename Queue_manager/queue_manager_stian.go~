@@ -1,5 +1,5 @@
 package Queue_manager
-/*
+
 import "../driver"
 import "../Network"
 import "../Types"
@@ -395,4 +395,4 @@ func Redistribute_orders(External_order Network.Message,Broadcast_buffer chan Ne
 		}
 	}
 	fmt.Println("then",local_queue)
-}*/
+}
