@@ -43,6 +43,7 @@ func is_order_in_this_floor(floor int)(bool) {
 	return false
 }
 func is_order_in_same_direction(direction int,current_floor int)(bool) {
+	
 	if direction==driver.DIRN_DOWN {
 		for floor := current_floor-1; floor >= 0; floor-- {
 			if is_order_in_this_floor(floor)==true {
@@ -50,7 +51,7 @@ func is_order_in_same_direction(direction int,current_floor int)(bool) {
 			}
 		}
 	}else if direction==driver.DIRN_UP {
-		for floor := current_floor+1; floor < Types.N_FLOORS; floor++ {
+		for floor := current_floor+1; floor < driver.N_FLOORS; floor++ {
 			if is_order_in_this_floor(floor)==true {
 				return true
 			}
@@ -77,8 +78,10 @@ func is_order_in_current_floor(direction,current_floor int)(bool) {
 func stop_routine(current_direction,current_floor int,Broadcast_buffer chan Network.Message) {
 	driver.Set_motor_direction(0)
 	driver.Set_door_lamp(1)
-	Update_queue(current_direction,current_floor,0,Broadcast_buffer)
+	go Update_queue(current_direction,current_floor,0,Broadcast_buffer)
+	fmt.Println("Welcome to the floor: ",current_floor,",We are in direction(-1D_1U): ",current_direction)
 	time.Sleep(3*time.Second)
+	fmt.Println("timer ferdig")
 	driver.Set_door_lamp(0)
 }
 func Update_queue(current_direction,current_floor int,state int,Broadcast_buffer chan Network.Message){
@@ -124,22 +127,22 @@ func Run_elevator(Broadcast_buffer chan Network.Message,current_floor int){
 	var current_direction int
 	var temp_current_floor int
 	moving:=false
+	
 	current_direction=driver.DIRN_UP
 	for {
 		if is_queue_empty()==false {
-			fmt.Println("Direction: ",current_direction)
-			
 				for {
+				
 					if is_order_in_same_direction(current_direction,current_floor)==false {
 						current_direction=change_direction(current_direction)
 					}
-
 					temp_current_floor=driver.Get_floor_sensor_signal()
 					if temp_current_floor!=-1 {
 						current_floor=temp_current_floor
+						driver.Set_floor_indicator(current_floor)
 					}
 
-					if temp_current_floor!=-1 && is_order_in_current_floor(current_direction,current_floor)==true {
+					if temp_current_floor!=-1 && (is_order_in_current_floor(current_direction,current_floor)==true)  {
 						stop_routine(current_direction,current_floor,Broadcast_buffer)
 						moving=false
 						break
@@ -147,9 +150,8 @@ func Run_elevator(Broadcast_buffer chan Network.Message,current_floor int){
 						driver.Set_motor_direction(current_direction)
 						moving=true
 					}
+					
 					time.Sleep(100*time.Millisecond)
-					fmt.Println(local_queue)
-				
 				}
 
 			}

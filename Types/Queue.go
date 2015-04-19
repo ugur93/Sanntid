@@ -1,6 +1,7 @@
 package Types
 
-const N_FLOORS int = 4;
+import "../driver"
+const N_FLOORS int = driver.N_FLOORS;
 type Order_queue struct {
 		Outside_order_down [(N_FLOORS)]int
 		Outside_order_up [(N_FLOORS)]int

@@ -1,5 +1,5 @@
 package Queue_manager
-
+/*
 import "../driver"
 import "../Network"
 import "../Types"
@@ -170,7 +170,7 @@ func Run_elevator(Broadcast_buffer chan Network.Message){
 			idle = true
 		}
 	}
-}*/
+}
 func Update_outside_lights(External_order Network.Message){
 		for i:=0; i<3; i++ {
 			if External_order.Mask.Outside_order_up[i]==1 {
@@ -260,7 +260,7 @@ func Get_orders(Received_order_ch,Broadcast_buffer chan Network.Message){ //STIL
 				/*msg.MessageType="Update"
 				msg.Data=local_queue
 				msg.Mask=local_queue
-				Broadcast_buffer<-msg*/
+				Broadcast_buffer<-msg
 			
 			}
 		}
@@ -403,4 +403,4 @@ func Redistribute_orders(External_order Network.Message,Broadcast_buffer chan Ne
 		}
 	}
 	fmt.Println("then",local_queue)
-}
+}*/

@@ -223,7 +223,7 @@ func Get_orders(Received_order_ch,Broadcast_buffer chan Network.Message){ //STIL
 	inside_order_ch := make(chan int)
 	//var outside_order_array [2]int
 	//inside_order := int
-	var msg Network.Message
+	//var msg Network.Message
 	go driver.Check_for_outside_order(outside_order_ch)
 	go driver.Check_for_inside_order(inside_order_ch)
 	for{
@@ -256,10 +256,11 @@ func Get_orders(Received_order_ch,Broadcast_buffer chan Network.Message){ //STIL
 			}else if External_order.MessageType=="Disconnected" {
 				go Redistribute_orders(External_order,Broadcast_buffer)
 			}else if External_order.MessageType=="NewElevator" {
-				msg.MessageType="Update"
+				Update_outside_lights(External_order)				
+				/*msg.MessageType="Update"
 				msg.Data=local_queue
 				msg.Mask=local_queue
-				Broadcast_buffer<-msg
+				Broadcast_buffer<-msg*/
 			
 			}
 		}

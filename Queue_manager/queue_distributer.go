@@ -136,27 +136,33 @@ func Calculate_orders_amount(Queue Types.Order_queue)(int){
 func calculate_order_cost(floor int, order_type int,Queue_n Types.Order_queue)(int){
 		Direction:=Queue_n.Moving_direction
 		LastFloor:=Queue_n.LastFloor
-		Moving:=Queue_n.Moving
+		//Moving:=Queue_n.Moving
 		cost:=0
-		if LastFloor==floor&&Moving==false {
+		if LastFloor==floor  {
 			return -1
 		}
 
 		if order_type==driver.BUTTON_CALL_UP&&Direction==driver.DIRN_UP { //Riktig retning{
 			if LastFloor>floor { //Kjørt forbi etasje
-				cost=cost+5
+				cost=cost+2
+			}else {
+				cost=cost+floor-LastFloor
+			
 			}
 		}else if order_type==driver.BUTTON_CALL_DOWN&&Direction==driver.DIRN_DOWN {
 			if LastFloor<floor {
-				cost=cost+5
+				cost=cost+2
+			}else {
+				cost=cost+LastFloor-floor
 			}
 		}
 		if order_type==driver.BUTTON_CALL_UP&&Direction==driver.DIRN_DOWN {
-			cost=cost+(Types.N_FLOORS-LastFloor)+(Types.N_FLOORS-floor)
+			cost=cost+(Types.N_FLOORS-LastFloor)+floor
 		}else if order_type==driver.BUTTON_CALL_DOWN&&Direction==driver.DIRN_UP {
-			cost=cost+(LastFloor)+floor
+			cost=cost+LastFloor+floor
 		}
 		cost=cost+Calculate_orders_amount(Queue_n)
+		fmt.Println("cost: ",cost)
 		return cost
 
 }
@@ -178,7 +184,6 @@ func assign_order(floor int,order_type int)(bool,Network.Message){
 			lowest_cost=cost
 			lowest_cost_ipAddr=ipAddr
 			Local=false
-			fmt.Println("Local False")
 		}
 	}
 
@@ -219,8 +224,6 @@ func isAlreadyinQueue(floor int, order_type int) (bool) {
 
 func Redistribute_orders(External_order Network.Message,Broadcast_buffer chan Network.Message){
 	Queue:=External_order.Data
-	fmt.Println("lost",Queue)
-	fmt.Println("first",local_queue)
 	for floor:=0; floor<3; floor++ {
 		if Queue.Outside_order_up[floor]==1 {
 			Local_order,New_Queue:=assign_order(floor,driver.BUTTON_CALL_UP)
@@ -241,5 +244,4 @@ func Redistribute_orders(External_order Network.Message,Broadcast_buffer chan Ne
 			}
 		}
 	}
-	fmt.Println("then",local_queue)
 }

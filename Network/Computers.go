@@ -20,7 +20,7 @@ var network_TimeStamp=map[string]time.Time{} //private
 var Queue_Network = map[string]Types.Order_queue{}
 var numberOfElevators int
 var ackFinished int
-
+//var my_queue Types.Order_queue
 //Ip:: 118, 155, 145.146,154,141
 func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Message,stop_chan chan int){ 
 
@@ -56,9 +56,6 @@ func WaitForMessages(Queue_Network_lock_chan chan int, time_chan chan int, ack_c
 				go HandleNewMessage(msg,Queue_Network_lock_chan,time_chan,ack_chan,send_ch,receive_ch,ReceiveOrderCh)
 			case msg:=<-BroadcastOrderCh:
 				//Update This Computer (More for printing)
-				//Queue_Network["This Computer             "]=msg.Data
-				//go printAllOrders(Queue_Network)
-				fmt.Println(len(Queue_Network),msg.RecipientAddr)
 				if numberOfElevators!=0 {
 					go BroadcastMessage(msg,ack_chan,send_ch)
 				}
@@ -137,8 +134,9 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message){
 			ackFinished = 0
 			break
 		}
+		time.Sleep(10*time.Millisecond)
+		//fmt.Println("w8ack")
 	}
-	
 	//Sending the message
 	send_ch<-msg
 	fmt.Println("Message sended,Waiting for ack")
@@ -152,6 +150,7 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message){
 	if numberOfElevators>0 {
 		fmt.Println("In for loop",numberOfElevators)
 		for {
+			
 				select {
 					case ackmsg:=<-ack_chan:
 						//Må være sikker på at vi mottar riktig ack
@@ -174,7 +173,9 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message){
 							//Resend the message
 							fmt.Println("Ack timed out,resending")
 							TTR=time.Now()
+							fmt.Println("sending")
 							send_ch<-msg
+							fmt.Println("sent")
 						}	
 				}
 				if finished==1 {
@@ -207,13 +208,18 @@ func checkConnectionStatus(time_chan chan int,Queue_Network_lock_chan chan int,R
 					delete(Queue_Network,ipAddr)
 					delete(network_TimeStamp,ipAddr)	
 					Queue_Network_lock_chan<-1
+					numberOfElevators=numberOfElevators-1
+					if numberOfElevators==0 {
+						fmt.Println("No more elevators in the system, going single-mode")
+					}
 					if isMaster() {
 						ReceiveOrderCh<-msg
 					}
+					
 					//Slett fra Computers arrayet
 					//Connection:=ConnectionStatus{State:"Disconnected",Queue:QueueData}
 					fmt.Println(ipAddr,"Disconnected from the network")
-					numberOfElevators=numberOfElevators-1
+					
 				}
 			}
 			

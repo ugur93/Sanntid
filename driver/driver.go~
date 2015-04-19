@@ -108,12 +108,12 @@ func Get_floor_sensor_signal() int {
 
 func Set_floor_indicator(floor int) {
 
-	if floor == 0x02 {
+	if floor==0x02 {
 		IO_set_bit(LIGHT_FLOOR_IND1)
-	} else {
+	}else {
 		IO_clear_bit(LIGHT_FLOOR_IND1)
 	}
-	if floor == 0x01 {
+	if floor==0x01{
 		IO_set_bit(LIGHT_FLOOR_IND2)
 	}else {
 		IO_clear_bit(LIGHT_FLOOR_IND2)
