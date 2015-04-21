@@ -67,21 +67,24 @@ func WaitForMessages(Queue_Network_chan chan map[string]Types.Order_queue,timeSt
 func HandleNewMessage(msg Message,Queue_Network_chan chan map[string]Types.Order_queue, timeStamp_chan chan map[string]time.Time, ack_chan chan Message,send_ch, receive_ch,ReceiveOrderCh chan Message) {
 				
 				ipAddr:=msg.RemoteAddr
-				ack:=Message{MessageType:"ack"}
-				NewElevator:=Message{MessageType:"NewElevator"}
+				ack:=Message{MessageType:Types.MT_ack}
+				NewElevator:=Message{MessageType:Types.MT_new_elevator}
 				//Update timestamp for the ipaddress
 				network_TimeStamp:=<-timeStamp_chan
 				network_TimeStamp[ipAddr]=time.Now()
 				timeStamp_chan<-network_TimeStamp
+
 				temp_Queue_Network:=<-Queue_Network_chan
 				Queue_Network_chan<-temp_Queue_Network
+
 				if _,ok:=temp_Queue_Network[ipAddr]; ok==false {
 					
 					//New Computer connected, put in map
 					Queue_Network:=<-Queue_Network_chan
 					Queue_Network[ipAddr]=msg.Data
 					Queue_Network_chan<-Queue_Network
-
+					
+					//
 					NewElevator.Data=msg.Data
 					NewElevator.Mask=msg.Mask
 					ReceiveOrderCh<-NewElevator
@@ -90,7 +93,7 @@ func HandleNewMessage(msg Message,Queue_Network_chan chan map[string]Types.Order
 					fmt.Println(ipAddr,"Connected to the network")
 					numberOfElevators=numberOfElevators+1
 				
-				}else if msg.MessageType == "Update" {
+				}else if msg.MessageType ==Types.MT_update {
 				
 						//Update Queue map
 						Queue_Network:=<-Queue_Network_chan
@@ -105,7 +108,7 @@ func HandleNewMessage(msg Message,Queue_Network_chan chan map[string]Types.Order
 						//Notify QueueManager		
 						//Send to QueueManager
 						
-				}else if msg.MessageType == "NewOrder" {
+				}else if msg.MessageType == Types.MT_new_order {
 						if msg.RecipientAddr==localAddr {
 							ReceiveOrderCh<-msg
 						}
@@ -114,7 +117,7 @@ func HandleNewMessage(msg Message,Queue_Network_chan chan map[string]Types.Order
 						ack.AckAddr=ipAddr
 						send_ch<-ack
 						
-				}else if msg.MessageType == "ack" {
+				}else if msg.MessageType == Types.MT_ack {
 						//Ack recieved, notify ack manager
 						ack_chan<-msg
 
@@ -126,17 +129,10 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message,ack_lock_chan ch
 	
 	
 	//Wait for other acks to finish
-	/*for {
-		if ackFinished == 1 {
-			ackFinished = 0
-			break
-		}
-		time.Sleep(10*time.Millisecond)
-		//fmt.Println("w8ack")
-	}*/
 	<-ack_lock_chan
 	//Sending the message
 	send_ch<-msg
+
 	fmt.Println("Message sended,Waiting for ack")
 	
 	//Initalize variables
@@ -146,7 +142,7 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message,ack_lock_chan ch
 	ackcounter:=0
 	
 	if numberOfElevators>0 {
-		fmt.Println("In for loop",numberOfElevators)
+		//fmt.Println("In for loop",numberOfElevators)
 		for {
 			
 				select {
@@ -184,7 +180,7 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message,ack_lock_chan ch
 
 func checkConnectionStatus(timeStamp_chan chan map[string]time.Time,Queue_Network_chan chan map[string]Types.Order_queue,ReceiveOrderCh chan Message){
 	var msg Message
-	msg.MessageType="Disconnected"
+	msg.MessageType=Types.MT_disconnected
 	for{
 			temp_timeStamp:=<-timeStamp_chan
 			timeStamp_chan<-temp_timeStamp
@@ -247,7 +243,7 @@ func isMaster(Queue_Network_chan chan map[string]Types.Order_queue)(bool){
 }
 
 func printAllOrders(temp_Queue_Network map[string]Types.Order_queue){
-	//fmt.Print("\033c")
+	fmt.Print("\033c")
 	fmt.Println("------------------------List of Elevator Queues-------------------------------")
 	fmt.Println("ipAddr                 | O1 | O2 | O3 | N1 | N2 | N3 | 1  | 2  | 3  | 4  |")
 	fmt.Println("--------------------------------------------------------------------------------------")

@@ -17,7 +17,8 @@ type Message struct {
 	MessageType string
 	Data Types.Order_queue
 	Mask Types.Order_queue
-	RemoteAddr string
+	RemoteAddr string //SenderAddr
+ 	RecipientAddr string
 	AckAddr string
 }
 var localAddr string
@@ -35,7 +36,7 @@ func UDP_send(addr string,send_ch chan Message){
 	}
 	localAddr=con.LocalAddr().String()
 	fmt.Println("My ip adress is: ",con.LocalAddr())
-	msgAlive:=Message{MessageType: "I am alive"}
+	msgAlive:=Types.Message{MessageType: "I am alive"}
 	//time.Sleep(10000*time.Second)
 	for{
 		select{

@@ -4,9 +4,10 @@ package Types
 
 const (
 	MT_update="Update"
-	MT_new_order="NewOrder"
+	MT_new_order="New_order"
 	MT_disconnected="Disconnected"
-	MT_ack="ack"
+	MT_ack="Ack"
+	MT_new_elevator="New_elevator"
 
 )
 const N_FLOORS int = 4

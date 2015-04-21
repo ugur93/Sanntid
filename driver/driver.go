@@ -3,10 +3,10 @@ package driver
 import(
 	"fmt"
 	"time"
+	"../Types"
 )
 
 const N_BUTTONS=3
-const N_FLOORS = 4
 
 var button_array =[][] int{
 		{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
@@ -28,35 +28,23 @@ var lamp_array =[][]int{
 	{LIGHT_COMMAND1,LIGHT_COMMAND2,LIGHT_COMMAND3,LIGHT_COMMAND4},*/
 }
 
-const(
-	BUTTON_CALL_UP int =0
-	BUTTON_CALL_DOWN int =1
-	BUTTON_COMMAND int = 2
-
-)
-const (
-	DIRN_DOWN int=-1
-	DIRN_STOP int=0
-	DIRN_UP int=1
-
-)
 func Driver_init()(int){
 	if !IO_init() {
 		fmt.Println("Could not initialize IO module")
 	}
 	current_floor:=Get_to_defined_state()
+	Set_floor_indicator(current_floor)
 	for i:=0; i<4; i++ {
 		if i < 3 {
-			Set_button_lamp(0,i,0)
+			Set_button_lamp(Types.BUTTON_CALL_UP,i,0)
 		}
 		if i!=0 {
-			Set_button_lamp(1,i,0)
+			Set_button_lamp(Types.BUTTON_CALL_DOWN,i,0)
 		}
-		Set_button_lamp(2,i,0)
+		Set_button_lamp(Types.BUTTON_COMMAND,i,0)
 	}
 	Set_stop_lamp(0)
 	Set_door_lamp(0)
-	Set_floor_indicator(0)
 	return current_floor
 	//current_floor = Get_to_defined_state()
 }
@@ -107,16 +95,20 @@ func Get_floor_sensor_signal() int {
 }
 
 func Set_floor_indicator(floor int) {
+	switch floor {
+		case 0:
+			IO_clear_bit(LIGHT_FLOOR_IND1)
+			IO_clear_bit(LIGHT_FLOOR_IND2)
+		case 1:
+			IO_clear_bit(LIGHT_FLOOR_IND1)
+			IO_set_bit(LIGHT_FLOOR_IND2)
+		case 2:
+			IO_set_bit(LIGHT_FLOOR_IND1)
+			IO_clear_bit(LIGHT_FLOOR_IND2)
+		case 3:
+			IO_set_bit(LIGHT_FLOOR_IND1)
+			IO_set_bit(LIGHT_FLOOR_IND2)	
 
-	if floor==0x02 {
-		IO_set_bit(LIGHT_FLOOR_IND1)
-	}else {
-		IO_clear_bit(LIGHT_FLOOR_IND1)
-	}
-	if floor==0x01 {
-		IO_set_bit(LIGHT_FLOOR_IND2)
-	}else {
-		IO_clear_bit(LIGHT_FLOOR_IND2)
 	}
 }
 func Set_button_lamp(BUTTON_TYPE int, floor int, value int){
@@ -144,23 +136,23 @@ func Check_for_outside_order(outside_order_ch chan [2]int) {
 	pressed_UP:=[]int{0,0,0,0}
 	pressed_DOWN:=[]int{0,0,0,0}
 	for {
-		for floor := 0; floor < N_FLOORS; floor++ {
+		for floor := 0; floor < Types.N_FLOORS; floor++ {
 		
 		
-			if Get_button_signal(BUTTON_CALL_DOWN, floor)==0 && pressed_DOWN[floor]==1 {
+			if Get_button_signal(Types.BUTTON_CALL_DOWN, floor)==0 && pressed_DOWN[floor]==1 {
 					pressed_DOWN[floor]=0;
 			
-			} else if Get_button_signal(BUTTON_CALL_UP, floor)==0 && pressed_UP[floor]==1 {
+			} else if Get_button_signal(Types.BUTTON_CALL_UP, floor)==0 && pressed_UP[floor]==1 {
 					pressed_UP[floor]=0
 			}
-			if floor!=0&&Get_button_signal(BUTTON_CALL_DOWN, floor)==1&&pressed_DOWN[floor]==0 {
+			if floor!=0&&Get_button_signal(Types.BUTTON_CALL_DOWN, floor)==1&&pressed_DOWN[floor]==0 {
 				pressed_DOWN[floor]=1
-				order_array[1] = BUTTON_CALL_DOWN
+				order_array[1] = Types.BUTTON_CALL_DOWN
 				order_array[0] = floor
 				outside_order_ch <- order_array
-			} else if floor!=3&&Get_button_signal(BUTTON_CALL_UP, floor)==1&&pressed_UP[floor]==0 {
+			} else if floor!=3&&Get_button_signal(Types.BUTTON_CALL_UP, floor)==1&&pressed_UP[floor]==0 {
 				pressed_UP[floor]=1
-				order_array[1] = BUTTON_CALL_UP
+				order_array[1] = Types.BUTTON_CALL_UP
 				order_array[0] = floor
 				outside_order_ch <- order_array
 			}
@@ -172,11 +164,11 @@ func Check_for_inside_order(inside_order_ch chan int){
 	var order int
 	pressed:=[]int{0,0,0,0}
 	for {
-		for floor := 0; floor < N_FLOORS; floor++ {
-			if Get_button_signal(BUTTON_COMMAND, floor) == 0 && pressed[floor] ==1 {
+		for floor := 0; floor < Types.N_FLOORS; floor++ {
+			if Get_button_signal(Types.BUTTON_COMMAND, floor) == 0 && pressed[floor] ==1 {
 				pressed[floor] = 0
 			}
-			if Get_button_signal(BUTTON_COMMAND, floor) == 1 && pressed[floor] == 0 {
+			if Get_button_signal(Types.BUTTON_COMMAND, floor) == 1 && pressed[floor] == 0 {
 				pressed[floor] = 1
 				order = floor
 				inside_order_ch <- order
@@ -189,10 +181,10 @@ func Get_to_defined_state()(int){
 	if Get_floor_sensor_signal() != -1 {
 		return Get_floor_sensor_signal()
 	} else {
-		Set_motor_direction(DIRN_DOWN)
+		Set_motor_direction(Types.DIRN_DOWN)
 		for {
 			if Get_floor_sensor_signal() != -1 {
-					Set_motor_direction(DIRN_STOP)
+					Set_motor_direction(Types.DIRN_STOP)
 					return Get_floor_sensor_signal()
 			}
 		}
