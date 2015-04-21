@@ -26,7 +26,7 @@ func is_order_in_this_floor(floor int,local_queue_chan chan Types.Order_queue)(b
 	}
 	return false
 }
-func is_order_in_same_direction(direction int,current_floor int,local_queue_chan chan Types.Order_queue)(bool) {
+func are_there_orders_in_this_direction(direction int,current_floor int,local_queue_chan chan Types.Order_queue)(bool) {
 	
 	if direction==Types.DIRN_DOWN {
 		for floor := current_floor-1; floor >= 0; floor-- {
@@ -109,7 +109,12 @@ func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_qu
 		if is_queue_empty(local_queue_chan)==false {
 				for {
 				
-					if is_order_in_same_direction(current_direction,current_floor,local_queue_chan)==false {
+					if are_there_orders_in_this_direction(current_direction,current_floor,local_queue_chan)==false {
+						if (is_order_in_current_floor(current_direction,current_floor,local_queue_chan)==true){
+							stop_routine(current_direction,current_floor,Broadcast_buffer,local_queue_chan)
+							moving=false
+							break
+						}
 						current_direction=change_direction(current_direction)
 						direction_changed=true
 					}
