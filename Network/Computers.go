@@ -13,7 +13,7 @@ import(
 var numberOfElevators int
 //var my_queue Types.Order_queue
 //Ip:: 118, 155, 145.146,154,141
-func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Message,stop_chan chan int,Queue_Network_chan chan map[string]Types.Order_queue){ 
+func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Types.Message,stop_chan chan int,Queue_Network_chan chan map[string]Types.Order_queue){ 
 
 	//Initialize variables
 	numberOfElevators=0
@@ -21,10 +21,10 @@ func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Messa
 	var network_TimeStamp=map[string]time.Time{}
 
 	//initialize channels
-	send_ch :=make(chan Message,1024)
-	receive_ch :=make(chan Message,1024)
+	send_ch :=make(chan Types.Message,1024)
+	receive_ch :=make(chan Types.Message,1024)
 	timeStamp_chan:=make(chan map[string]time.Time,1)
-	ack_chan:=make(chan Message,1024)
+	ack_chan:=make(chan Types.Message,1024)
 	ack_lock_chan:=make(chan int,1)
 
 	timeStamp_chan<-network_TimeStamp
@@ -43,7 +43,7 @@ func Network_Manager_init(Port string,BroadcastOrderCh,ReceiveOrderCh chan Messa
 
 }
 
-func WaitForMessages(Queue_Network_chan chan map[string]Types.Order_queue,timeStamp_chan chan map[string]time.Time,ack_chan,send_ch,receive_ch,ReceiveOrderCh,BroadcastOrderCh chan Message,ack_lock_chan chan int) {
+func WaitForMessages(Queue_Network_chan chan map[string]Types.Order_queue,timeStamp_chan chan map[string]time.Time,ack_chan,send_ch,receive_ch,ReceiveOrderCh,BroadcastOrderCh chan Types.Message,ack_lock_chan chan int) {
 	
 	for{
 		select{
@@ -64,11 +64,11 @@ func WaitForMessages(Queue_Network_chan chan map[string]Types.Order_queue,timeSt
 
 }
 
-func HandleNewMessage(msg Message,Queue_Network_chan chan map[string]Types.Order_queue, timeStamp_chan chan map[string]time.Time, ack_chan chan Message,send_ch, receive_ch,ReceiveOrderCh chan Message) {
+func HandleNewMessage(msg Types.Message,Queue_Network_chan chan map[string]Types.Order_queue, timeStamp_chan chan map[string]time.Time, ack_chan chan Types.Message,send_ch, receive_ch,ReceiveOrderCh chan Types.Message) {
 				
 				ipAddr:=msg.RemoteAddr
-				ack:=Message{MessageType:Types.MT_ack}
-				NewElevator:=Message{MessageType:Types.MT_new_elevator}
+				ack:=Types.Message{MessageType:Types.MT_ack}
+				NewElevator:=Types.Message{MessageType:Types.MT_new_elevator}
 				//Update timestamp for the ipaddress
 				network_TimeStamp:=<-timeStamp_chan
 				network_TimeStamp[ipAddr]=time.Now()
@@ -125,7 +125,7 @@ func HandleNewMessage(msg Message,Queue_Network_chan chan map[string]Types.Order
 
 
 }
-func BroadcastMessage(msg Message,ack_chan,send_ch chan Message,ack_lock_chan chan int){
+func BroadcastMessage(msg Types.Message,ack_chan,send_ch chan Types.Message,ack_lock_chan chan int){
 	
 	
 	//Wait for other acks to finish
@@ -178,8 +178,8 @@ func BroadcastMessage(msg Message,ack_chan,send_ch chan Message,ack_lock_chan ch
 		ack_lock_chan<-1
 }
 
-func checkConnectionStatus(timeStamp_chan chan map[string]time.Time,Queue_Network_chan chan map[string]Types.Order_queue,ReceiveOrderCh chan Message){
-	var msg Message
+func checkConnectionStatus(timeStamp_chan chan map[string]time.Time,Queue_Network_chan chan map[string]Types.Order_queue,ReceiveOrderCh chan Types.Message){
+	var msg Types.Message
 	msg.MessageType=Types.MT_disconnected
 	for{
 			temp_timeStamp:=<-timeStamp_chan

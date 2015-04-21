@@ -5,7 +5,6 @@ import "../Network"
 import "../Types"
 //import "time"
 import "fmt"
-import "math"
 
 
 
@@ -37,52 +36,24 @@ func Queue_manager_init(stop_chan chan int){
 }
 
 
-func Update_lights(inside_order bool,Queue_mask Types.Order_queue,Order_data Types.Order_queue){
-		for i:=0; i<Types.N_FLOORS-1; i++ {
-			if Order_mask.Outside_order_up[i]==1 {
-				state:=Order_data.Outside_order_up[i]
-				driver.Set_button_lamp(0,i,state)
-			}
-		}
-		for i:=1; i<Types.N_FLOORS; i++ {
-			if Order_mask.Outside_order_down[i]==1 {
-				state:=Order_data.Outside_order_down[i]
-				driver.Set_button_lamp(1,i,state)
-			}
-		}
-		if inside_order {
-			for i:=0; i<Types.N_FLOORS; i++ {
-				if Order_mask.Inside_order[i]==1 {
-					state:=Order_data.Inside_order[i]
-					driver.Set_button_lamp(1,i,state)
-				}
-			}
-		}		
-}
-func Update_queue(inside_order bool,state int,Order_mask Types.Order_queue, Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue) {
+
+func Update_outside_order(External_order Types.Message, Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue) {
 		local_queue:=<-local_queue_chan
-		if inside_order {
-			for i:=1; i<Types.N_FLOORS; i++ {
-				if Order_mask.Inside_order[i]==1 {
-					local_queue.Inside_orderi]=state
-				}
-			}
-		}
 		for i:=0; i<Types.N_FLOORS-1; i++ {
-			if Order_mask.Outside_order_up[i]==1 {
-				local_queue.Outside_order_up[i]=state
+			if External_order.Mask.Outside_order_up[i]==1 {
+				local_queue.Outside_order_up[i]=1
 			}
 		}
 		for i:=1; i<Types.N_FLOORS; i++ {
-			if Order_mask..Outside_order_down[i]==1 {
-				local_queue.Outside_order_down[i]=state
+			if External_order.Mask.Outside_order_down[i]==1 {
+				local_queue.Outside_order_down[i]=1
 			}
 		}
 
-		temp_local_queue=local_queue
+		External_order.Data=local_queue
 		local_queue_chan<-local_queue
 
-		Update_lights(inside_order,Order_mask,temp_local_queue)
+		Update_outside_lights(External_order)
 		//Generate Update message Fiks dette med egen funksjon
 		var msg Types.Message
 		msg.MessageType=Types.MT_update
@@ -90,6 +61,19 @@ func Update_queue(inside_order bool,state int,Order_mask Types.Order_queue, Broa
 		msg.Mask=External_order.Mask
 		Broadcast_buffer<-msg
 }
+func Update_inside_order(floor int,state int,Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue){
+		
+		local_queue:=<-local_queue_chan
+		local_queue.Inside_order[floor]=state
+		Update_lights(2,floor,state)
+		local_queue_chan<-local_queue
+		
+		var msg Types.Message
+		msg.MessageType=Types.MT_update
+		msg.Data=local_queue
+		Broadcast_buffer<-msg
+}
+
 //Denne sjekker etter bestillinger på lokal heis, og sjekker bestillinger fra nettverket. 
 func Get_orders(Received_order_ch,Broadcast_buffer chan Types.Message,Queue_Network_chan chan map[string]Types.Order_queue,local_queue_chan chan Types.Order_queue){ //STILL IN PRODUCTION, how is the queue going to be
 	outside_order_ch := make(chan [2]int)
@@ -108,30 +92,28 @@ func Get_orders(Received_order_ch,Broadcast_buffer chan Types.Message,Queue_Netw
 				if isAlreadyinQueue(floor, order_type,Queue_Network_chan,local_queue_chan)==false {
 						Local_order,New_Queue:=assign_order(floor,order_type,Queue_Network_chan,local_queue_chan)
 						if Local_order{
-							Update_queue(false,1,New_Queue.Mask,Broadcast_buffer,local_queue_chan)		
+							Update_outside_order(New_Queue,Broadcast_buffer,local_queue_chan)		
 						}else {
 							fmt.Println("Sending order to",New_Queue.RecipientAddr)
 							Broadcast_buffer<-New_Queue
 						}
 				}
 			case inside_order := <- inside_order_ch:
-				var Order_mask Types.Order_queue
-				Order_mask.Inside_order[floor]=inside_order
-				//floor := inside_order
-				//order_type := 2
+				floor := inside_order
+				order_type := 2
 				if isAlreadyinQueue(floor,order_type,Queue_Network_chan,local_queue_chan)==false {
-						Update_queue(true,1,Order_mask,Broadcast_buffer,local_queue_chan)
+						Update_inside_order(floor,1,Broadcast_buffer,local_queue_chan)
 				}
 		
 			case External_order:=<-Received_order_ch:
 				if External_order.MessageType==Types.MT_update { //Update 
-					Update_lights(false,External_order.Mask,External_order.Data)
+					Update_outside_lights(External_order)
 				}else if External_order.MessageType==Types.MT_new_order { //New order {
-					Update_queue(false,1,External_order.Mask,Broadcast_buffer,local_queue_chan)
+					Update_outside_order(External_order,Broadcast_buffer,local_queue_chan)
 				}else if External_order.MessageType==Types.MT_disconnected { //Disconnected {
 					go Redistribute_orders(External_order,Broadcast_buffer,Queue_Network_chan,local_queue_chan)
 				}else if External_order.MessageType==Types.MT_new_elevator { //New elevator {
-					Update_queue(false,External_order.Mask,External_order.Data)				
+					Update_outside_lights(External_order)				
 				}
 			}
 	}
@@ -169,8 +151,8 @@ func calculate_order_cost(floor int, order_type int,Queue_n Types.Order_queue)(i
 		LastFloor:=Queue_n.LastFloor
 		//Moving:=Queue_n.Moving
 		cost:=0
-		if LastFloor==floor && Direction==order_type  {
-			cost=-2
+		if LastFloor==floor  {
+			cost=-1
 		}
 
 		if order_type==Types.BUTTON_CALL_UP&&Direction==Types.DIRN_UP { //Riktig retning{
@@ -188,9 +170,9 @@ func calculate_order_cost(floor int, order_type int,Queue_n Types.Order_queue)(i
 			}
 		}
 		if order_type==Types.BUTTON_CALL_UP&&Direction==Types.DIRN_DOWN {
-			cost=cost+math.Abs((LastFloor)-floor)
+			cost=cost+(Types.N_FLOORS-LastFloor)+floor
 		}else if order_type==Types.BUTTON_CALL_DOWN&&Direction==Types.DIRN_UP {
-			cost=cost+math.Abs(LastFloor-floor)
+			cost=cost+LastFloor+floor
 		}
 		cost=cost+Calculate_orders_amount(Queue_n)
 		//fmt.Println("cost: ",cost)
@@ -269,7 +251,7 @@ func Redistribute_orders(External_order Types.Message,Broadcast_buffer chan Type
 		if Queue.Outside_order_up[floor]==1 {
 			Local_order,New_Queue:=assign_order(floor,Types.BUTTON_CALL_UP,Queue_Network_chan,local_queue_chan)
 			if Local_order {
-				Update_queue(alse,1,New_Queue.Mask,Broadcast_buffer,local_queue_chan)
+				Update_outside_order(New_Queue,Broadcast_buffer,local_queue_chan)
 			}else {
 				Broadcast_buffer<-New_Queue
 			}
@@ -279,7 +261,7 @@ func Redistribute_orders(External_order Types.Message,Broadcast_buffer chan Type
 		if Queue.Outside_order_down[floor]==1 {
 			Local_order,New_Queue:=assign_order(floor,Types.BUTTON_CALL_DOWN,Queue_Network_chan,local_queue_chan)
 			if Local_order {
-				Update_queue(false,1,New_Queue.Mask,Broadcast_buffer,local_queue_chan)
+				Update_outside_order(New_Queue,Broadcast_buffer,local_queue_chan)
 			}else {
 				Broadcast_buffer<-New_Queue
 			}

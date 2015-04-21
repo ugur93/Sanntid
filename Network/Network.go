@@ -23,20 +23,20 @@ type Message struct {
 }
 var localAddr string
 
-func UDP_init(Port string,send_ch,receive_ch chan Message){
+func UDP_init(Port string,send_ch,receive_ch chan Types.Message){
 	
 	go UDP_send(BroadcastAddr+":"+Port,send_ch)
 	go UDP_receive(":"+Port,receive_ch)
 }
 
-func UDP_send(addr string,send_ch chan Message){
+func UDP_send(addr string,send_ch chan Types.Message){
 	con,err:=net.Dial("udp",addr);
 	if err!=nil {
 		fmt.Println("Error Dial",err)
 	}
 	localAddr=con.LocalAddr().String()
 	fmt.Println("My ip adress is: ",con.LocalAddr())
-	msgAlive:=Message{MessageType: "I am alive"}
+	msgAlive:=Types.Message{MessageType: "I am alive"}
 	//time.Sleep(10000*time.Second)
 	for{
 		select{
@@ -65,7 +65,7 @@ func UDP_send(addr string,send_ch chan Message){
 	}	
 }
 
-func UDP_receive(port string,receive_ch chan Message){
+func UDP_receive(port string,receive_ch chan Types.Message){
 	addr,err:=net.ResolveUDPAddr("udp",port)
 	sock,err:=net.ListenUDP("udp",addr)
 	if err!=nil {
@@ -73,7 +73,7 @@ func UDP_receive(port string,receive_ch chan Message){
 		fmt.Println(err)
 	}
 	//timeStart:=time.Now();
-	msg:=Message{}
+	msg:=Types.Message{}
 	buffer:=make([]byte,1024)
 	for{	
 		
