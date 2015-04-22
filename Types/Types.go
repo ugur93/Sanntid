@@ -29,18 +29,18 @@ type Order_queue struct {
 		Outside_order_down [(N_FLOORS)]int
 		Outside_order_up [(N_FLOORS)]int
 		Inside_order [N_FLOORS]int
-		LastFloor int 
+		Last_floor int 
 		Moving_direction int
 		Moving bool
 }
 
 type Message struct {
-	MessageType string
+	Message_type string
 	Data Order_queue
 	Mask Order_queue
-	RemoteAddr string //SenderAddr
- 	RecipientAddr string
-	AckAddr string
+	Remote_addr string //SenderAddr
+ 	Recipient_addr string
+	Ack_addr string
 }
 
 //[N_FLOORS+2*(N_FLOORS-1)+2]int

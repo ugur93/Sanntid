@@ -4,14 +4,35 @@ package main
 //import "./driver"
 //import "time"
 import "./Queue_manager"
-//import "time"
+import "os/signal"
+import "os"
+import "fmt"
+import "syscall"
+import "time"
 const N_FLOORS int = 4
 
 func main() {
 	stop_chan:=make(chan int,1);
-	stop_chan<-1
+	//stop_chan<-1
 	Queue_manager.Queue_manager_init(stop_chan);
-	stop_chan<-1
+    
+    c := make(chan os.Signal, 1)
+    signal.Notify(c, os.Interrupt)
+    signal.Notify(c, syscall.SIGTERM)
+    go func() {
+        <-c
+        Queue_manager.Cleanup()
+        stop_chan<-1
+        //time.Sleep(10 * time.Second)
+        //cleanup()
+        os.Exit(1)
+    }()
+
+    for {
+        fmt.Println("Working...")
+        time.Sleep(10 * time.Second) // or runtime.Gosched() or similar per @misterbee
+    }
+	//stop_chan<-1
 	//go Driver_test();
 	//Network_test();
 	

@@ -1,10 +1,16 @@
-package Queue_manager
+package Elevator
 
 import "../driver"
-import "../Network"
 import "../Types"
 import "time"
 import "fmt"
+
+func Elevator_init(Broadcast_buffer chan Types.Message,current_floor int, local_queue_chan chan Types.Order_queue,Delete_order_ch chan Types.Order_queue ) {
+
+	Run_elevator(Broadcast_buffer,current_floor,local_queue_chan,Delete_order_ch)
+
+}
+
 
 func is_queue_empty(local_queue_chan chan Types.Order_queue)(bool){
 	for i:=0; i<Types.N_FLOORS; i++ {
@@ -61,36 +67,41 @@ func is_order_in_current_floor(direction,current_floor int,local_queue_chan chan
 	return false
 }
 
-func stop_routine(current_direction,current_floor int,Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue) {
+func stop_routine(current_direction,current_floor int,Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue,Delete_order_ch chan Types.Order_queue) {
 	driver.Set_motor_direction(0)
 	driver.Set_door_lamp(1)
-	go Delete_order(current_direction,current_floor,Broadcast_buffer,local_queue_chan)
+	go Delete_order(current_direction,current_floor,Broadcast_buffer,local_queue_chan,Delete_order_ch)
 	fmt.Println("Welcome to the floor: ",current_floor,",We are in direction(-1D_1U): ",current_direction)
 	time.Sleep(3*time.Second)
 	driver.Set_door_lamp(0)
 }
-func Delete_order(current_direction,current_floor int,Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue){
+func Delete_order(current_direction,current_floor int,Broadcast_buffer chan Types.Message,local_queue_chan chan Types.Order_queue,Delete_order_ch chan Types.Order_queue){
 	
 	var new_msg Types.Message
-	new_msg.MessageType=Types.MT_update
-
-	local_queue:=<-local_queue_chan
-
-	local_queue.LastFloor=current_floor
-	local_queue.Moving_direction=current_direction
-
-	local_queue_chan<-local_queue
-
-	if current_direction==Types.DIRN_UP&&current_floor!=3{
+	new_msg.Message_type=Types.MT_update
+	
+	Update_state_information(current_direction,current_floor,local_queue_chan)
+	
+	if current_direction==Types.DIRN_UP || current_floor==0 {
 		new_msg.Mask.Outside_order_up[current_floor]=1
 		new_msg.Mask.Inside_order[current_floor]=1
-	}else if current_direction==Types.DIRN_DOWN&&current_floor!=0 {	
+	}
+	if current_direction==Types.DIRN_DOWN || current_floor==3 {	
 		new_msg.Mask.Outside_order_down[current_floor]=1
 		new_msg.Mask.Inside_order[current_floor]=1
 	}else {
 		new_msg.Mask.Inside_order[current_floor]=1
-	}	
-	Update_queue(true,0,Broadcast_buffer,local_queue_chan)
+	}
+	Delete_order_ch<-new_msg.Mask	
+	//Queue_manager.Update_queue(true,0,new_msg.Mask,Broadcast_buffer,local_queue_chan)
+}
+func Update_state_information(current_direction,current_floor int,local_queue_chan chan Types.Order_queue){
+	
+	local_queue:=<-local_queue_chan
+	local_queue.Last_floor=current_floor
+	local_queue.Moving_direction=current_direction
+	local_queue_chan<-local_queue
+
 }
 func change_direction(current_direction int)(int){
 	if current_direction==Types.DIRN_UP {
@@ -98,7 +109,7 @@ func change_direction(current_direction int)(int){
 	}	
 	return Types.DIRN_UP
 }
-func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_queue_chan chan Types.Order_queue){
+func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_queue_chan chan Types.Order_queue,Delete_order_ch chan Types.Order_queue){
 	var current_direction int
 	var temp_current_floor int
 	moving:=false
@@ -106,12 +117,16 @@ func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_qu
 	current_direction=Types.DIRN_UP
 	direction_changed:=false
 	for {
+		if moving==false && driver.Get_floor_sensor_signal()==-1 {
+				current_floor=driver.Get_to_defined_state()
+		
+		}
 		if is_queue_empty(local_queue_chan)==false {
 				for {
 				
 					if are_there_orders_in_this_direction(current_direction,current_floor,local_queue_chan)==false {
 						if (is_order_in_current_floor(current_direction,current_floor,local_queue_chan)==true){
-							stop_routine(current_direction,current_floor,Broadcast_buffer,local_queue_chan)
+							stop_routine(current_direction,current_floor,Broadcast_buffer,local_queue_chan,Delete_order_ch)
 							moving=false
 							break
 						}
@@ -121,11 +136,10 @@ func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_qu
 					temp_current_floor=driver.Get_floor_sensor_signal()
 					if temp_current_floor!=-1 {
 						current_floor=temp_current_floor
-						driver.Set_floor_indicator(current_floor)
 					}
 
 					if temp_current_floor!=-1 && (is_order_in_current_floor(current_direction,current_floor,local_queue_chan)==true)  {
-						stop_routine(current_direction,current_floor,Broadcast_buffer,local_queue_chan)
+						stop_routine(current_direction,current_floor,Broadcast_buffer,local_queue_chan,Delete_order_ch)
 						moving=false
 						break
 					}else if moving==false && direction_changed==false {
@@ -139,7 +153,9 @@ func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_qu
 				}
 
 			}
+			time.Sleep(100*time.Millisecond)
 		}
+		
 
 }
 

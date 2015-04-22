@@ -1,0 +1,33 @@
+func calculate_order_cost(floor int, order_type int,Queue_n Types.Order_queue)(int){
+		Direction:=Queue_n.Moving_direction
+		LastFloor:=Queue_n.LastFloor
+		//Moving:=Queue_n.Moving
+		cost:=0
+		if LastFloor==floor && Direction==order_type  {
+			cost=-2
+		}
+		
+		if order_type==Types.BUTTON_CALL_UP&&Direction==Types.DIRN_UP { //Riktig retning{
+			if LastFloor>floor { //Kjørt forbi etasje
+				cost=cost+5
+			}else {
+				cost=cost+floor-LastFloor
+			
+			}
+		}else if order_type==Types.BUTTON_CALL_DOWN&&Direction==Types.DIRN_DOWN {
+			if LastFloor<floor {
+				cost=cost+5
+			}else {
+				cost=cost+LastFloor-floor
+			}
+		}
+		if order_type==Types.BUTTON_CALL_UP&&Direction==Types.DIRN_DOWN {
+			cost=cost+(LastFloor)-floor
+		}else if order_type==Types.BUTTON_CALL_DOWN&&Direction==Types.DIRN_UP {
+			cost=cost+LastFloor-floor
+		}
+		cost=cost+Calculate_orders_amount(Queue_n)+int(math.Abs(float64(LastFloor-floor)))
+		//fmt.Println("cost: ",cost)
+		return cost
+
+}

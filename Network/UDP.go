@@ -78,7 +78,7 @@ func UDP_receive(port string,receive_ch chan Types.Message){
 			fmt.Println(err);
 		}
 		//Check if not reading own message
-		if Raddr.String()!=localAddr{
+		if Raddr.String()!=local_addr{
 			msg.Remote_addr=Raddr.String();
 			receive_ch<-msg
 		}

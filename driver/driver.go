@@ -32,6 +32,7 @@ func Driver_init()(int){
 	if !IO_init() {
 		fmt.Println("Could not initialize IO module")
 	}
+	//fmt.Println("Initialized")
 	current_floor:=Get_to_defined_state()
 	Set_floor_indicator(current_floor)
 	for i:=0; i<4; i++ {
@@ -45,6 +46,7 @@ func Driver_init()(int){
 	}
 	Set_stop_lamp(0)
 	Set_door_lamp(0)
+	fmt.Print("\033c")
 	return current_floor
 	//current_floor = Get_to_defined_state()
 }
@@ -82,12 +84,16 @@ func Set_door_lamp(value int){
 }
 func Get_floor_sensor_signal() int {
 	if IO_read_bit(SENSOR_FLOOR1)==1 {
+		Set_floor_indicator(0)
 		return 0
 	}else if IO_read_bit(SENSOR_FLOOR2)==1 {
+		Set_floor_indicator(1)		
 		return 1
 	}else if IO_read_bit(SENSOR_FLOOR3)==1 {
+		Set_floor_indicator(2)
 		return 2
 	}else if IO_read_bit(SENSOR_FLOOR4)==1 {
+		Set_floor_indicator(3)
 		return 3
 	}else {
 		return -1
@@ -157,7 +163,7 @@ func Check_for_outside_order(outside_order_ch chan [2]int) {
 				outside_order_ch <- order_array
 			}
 		}
-		time.Sleep(100*time.Millisecond) 
+		time.Sleep(10*time.Millisecond) 
 	}
 }
 func Check_for_inside_order(inside_order_ch chan int){
@@ -174,19 +180,26 @@ func Check_for_inside_order(inside_order_ch chan int){
 				inside_order_ch <- order
 			}
 		}
-		time.Sleep(100*time.Millisecond)
+		time.Sleep(10*time.Millisecond)
 	}
 }
 func Get_to_defined_state()(int){
+	defer fmt.Println(" ")
 	if Get_floor_sensor_signal() != -1 {
 		return Get_floor_sensor_signal()
 	} else {
 		Set_motor_direction(Types.DIRN_DOWN)
 		for {
+			fmt.Print(".")
 			if Get_floor_sensor_signal() != -1 {
 					Set_motor_direction(Types.DIRN_STOP)
+					Set_stop_lamp(0)
 					return Get_floor_sensor_signal()
 			}
+			Set_stop_lamp(1)
+			time.Sleep(100*time.Millisecond)
+			Set_stop_lamp(0)
+			time.Sleep(100*time.Millisecond)
 		}
 	}
 }
