@@ -23,6 +23,7 @@ func Queue_manager_init(stop_chan chan int){
 	Received_order_ch:=make(chan Types.Message,1)
 	Broadcast_buffer:=make(chan Types.Message,500)
 	Delete_order_ch:=make(chan Types.Order_queue,1)
+	//Activity_timer_ch:=make(chan time.Time,1)
 	
 	var local_queue Types.Order_queue;
 	local_queue.Last_floor=current_floor
@@ -146,6 +147,9 @@ func Get_orders(Received_order_ch,Broadcast_buffer chan Types.Message,Queue_Netw
 			case <-stop_chan:
 				<-local_queue_chan
 			case Mask:=<-Delete_order_ch:
+				/*Activity_timer:=<-Activity_timer_ch
+				Acitivity_timer=time.Now()
+				Activity_timer_ch<-Activity_timer*/
 				Update_queue(true,0,Mask,Broadcast_buffer,local_queue_chan)
 			}
 
@@ -301,3 +305,15 @@ func Redistribute_orders(External_order Types.Message,Broadcast_buffer chan Type
 		}
 	}
 }
+/*func Activity_monitor(Acitivity_timer_ch chan time.Time,local_queue_chan chan Types.Order_queue,Broadcast_buffer_ch chan Types.Message){
+   
+   for {
+   		Activity_timer:=<-Activity_timer_ch
+   		Activity_timer_ch<-Activity_timer
+   		if Acitivity_timer.sub(time.Now())>5*time.Seconds && Elevator.is_queue_empty(local_queue_chan)==false {
+   			//Send message
+   		}
+   		time.Sleep(10*time.Seconds)
+   }
+
+}*/

@@ -106,9 +106,6 @@ func HandleNewMessage(msg Types.Message,Queue_Network_chan chan map[string]Types
 						go printAllOrders(Queue_Network)
 						Queue_Network_chan<-Queue_Network
 						
-						/*Update_time:=<-Update_time_chan
-						Update_time[ipAddr]=time.Now()
-						Update_time_chan<-Update_time*/
 						//Send ack
 						ReceiveOrderCh<-msg
 						ack.Ack_addr=ipAddr
@@ -129,7 +126,13 @@ func HandleNewMessage(msg Types.Message,Queue_Network_chan chan map[string]Types
 						//Ack recieved, notify ack manager
 						ack_chan<-msg
 
-				}
+				}/*else if msg.Message_type ==Types.MT_out {
+
+					Queue_Network:=<-Queue_Network_chan
+					delete(Queue_Network,ipAddr)
+					Queue_Network_chan<-Queue_Network
+
+				}*/
 
 }
 func BroadcastMessage(msg Types.Message,ack_chan,send_ch chan Types.Message,ack_lock_chan chan int){
@@ -232,37 +235,6 @@ func check_connection_status(timeStamp_chan chan map[string]time.Time,Queue_Netw
 
 
 }
-/*
-func check_operation_status(Update_time_chan chan map[string]time.Time,Receive_order_ch chan Types.Message,Queue_Network_chan chan map[string]Types.Order_queue) {
-	var msg Types.Message
-	msg.Message_type=Types.MT_disconnected
-	for {
-		temp_update_time:=<-Update_time_chan
-		Update_time_chan<-temp_update_time
-		timeEnd:=time.Now()
-		for ip_addr,timeStart:=range temp_update_time{
-			if timeEnd.Sub(timeStart)>=2*time.Second {
-					
-						Update_time:=<-Update_time_chan
-						Queue_Network:=<-Queue_Network_chan
-						msg.Data=Queue_Network[ip_addr]
-						delete(Update_time,ip_addr)
-						delete(Queue_Network,ip_addr)
-						Queue_Network_chan<-Queue_Network
-						Update_time_chan<-Update_time
-						fmt.Println(ip_addr,"Is not responding")
-						
-					if is_master(Queue_Network_chan) {
-						Receive_order_ch<-msg
-					}
-			}  
-	
-	
-		}
-		time.Sleep(3*time.Second)
-	}
-
-}*/
 func is_master(Queue_Network_chan chan map[string]Types.Order_queue)(bool){
 	s:= strings.Split(local_addr,":")
 	myip,_:=strconv.Atoi(s[1])// string to int
