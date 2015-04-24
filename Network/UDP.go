@@ -4,12 +4,10 @@ import(
 	"fmt"
 	"net"
 	"time"
-	//"runtime"
 	"encoding/json"
 	"../Types"
 )
 
-//const BroadcastAddr="localhost"//"192.168.0.255"
 const Broadcast_addr="129.241.187.255"
 
 var local_addr string
@@ -28,7 +26,7 @@ func UDP_send(addr string,send_ch chan Types.Message){
 	local_addr=con.LocalAddr().String()
 	fmt.Println("My ip adress is: ",con.LocalAddr())
 	msgAlive:=Types.Message{Message_type: "I am alive"}
-	//time.Sleep(10000*time.Second)
+	
 	for{
 		select{
 			case msg:=<-send_ch:
@@ -63,7 +61,6 @@ func UDP_receive(port string,receive_ch chan Types.Message){
 		panic(err)
 		fmt.Println(err)
 	}
-	//timeStart:=time.Now();
 	msg:=Types.Message{}
 	buffer:=make([]byte,1024)
 	for{	

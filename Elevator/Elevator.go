@@ -12,7 +12,7 @@ func Elevator_init(Broadcast_buffer chan Types.Message,current_floor int, local_
 }
 
 
-func is_queue_empty(local_queue_chan chan Types.Order_queue)(bool){
+func Is_queue_empty(local_queue_chan chan Types.Order_queue)(bool){
 	for i:=0; i<Types.N_FLOORS; i++ {
 		if is_order_in_this_floor(i,local_queue_chan)==true {
 			return false
@@ -93,7 +93,7 @@ func Delete_order(current_direction,current_floor int,Broadcast_buffer chan Type
 		new_msg.Mask.Inside_order[current_floor]=1
 	}
 	Delete_order_ch<-new_msg.Mask	
-	//Queue_manager.Update_queue(true,0,new_msg.Mask,Broadcast_buffer,local_queue_chan)
+	
 }
 func Update_state_information(current_direction,current_floor int,local_queue_chan chan Types.Order_queue){
 	
@@ -121,8 +121,13 @@ func Run_elevator(Broadcast_buffer chan Types.Message,current_floor int,local_qu
 				current_floor=driver.Get_to_defined_state()
 		
 		}
-		if is_queue_empty(local_queue_chan)==false {
+		if Is_queue_empty(local_queue_chan)==false {
 				for {
+					if Is_queue_empty(local_queue_chan)==true {
+						current_floor=driver.Get_to_defined_state()
+						moving = false
+						break
+					}
 				
 					if are_there_orders_in_this_direction(current_direction,current_floor,local_queue_chan)==false {
 						if (is_order_in_current_floor(current_direction,current_floor,local_queue_chan)==true){

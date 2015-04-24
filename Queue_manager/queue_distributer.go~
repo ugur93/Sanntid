@@ -4,14 +4,13 @@ import "../driver"
 import "../Network"
 import "../Types"
 import "../Elevator"
-//import "time"
+import "time"
 import "fmt"
 import "math"
 
 
 
 func Queue_manager_init(stop_chan chan int){
-	//Queue_chan:=make(chan int);
 	
 	current_floor:=driver.Driver_init()
 	//Initialize variables
@@ -19,22 +18,24 @@ func Queue_manager_init(stop_chan chan int){
 
 	Broadcast_order:=make(chan Types.Message,1)
 	local_queue_chan:=make(chan Types.Order_queue,1)
-	Queue_Network_chan:=make(chan map[string]Types.Order_queue,1) //Bruk det når det leses på Queue
+	Queue_Network_chan:=make(chan map[string]Types.Order_queue,1) 
 	Received_order_ch:=make(chan Types.Message,1)
 	Broadcast_buffer:=make(chan Types.Message,500)
 	Delete_order_ch:=make(chan Types.Order_queue,1)
+	Activity_timer_ch:=make(chan time.Time,1)
 	
 	var local_queue Types.Order_queue;
+	Activity_timer:=time.Now()
+	Activity_timer_ch<-Activity_timer
 	local_queue.Last_floor=current_floor
 	local_queue.Moving=false
 	local_queue_chan<-local_queue
-	//Queue_lock_chan<-1
 
 	go Network.Network_Manager_init("20020",Broadcast_order,Received_order_ch,stop_chan,Queue_Network_chan)
 	go Elevator.Elevator_init(Broadcast_buffer,current_floor,local_queue_chan,Delete_order_ch)
-	go Get_orders(Received_order_ch,Broadcast_buffer,Queue_Network_chan,local_queue_chan,stop_chan,Delete_order_ch)
+	go Get_orders(Received_order_ch,Broadcast_buffer,Queue_Network_chan,local_queue_chan,stop_chan,Delete_order_ch,Activity_timer_ch)
 	go Send_orders(Broadcast_order,Broadcast_buffer)
-	//go Run_elevator(Broadcast_buffer,current_floor,local_queue_chan)
+	go Activity_monitor(Activity_timer_ch,local_queue_chan,Broadcast_buffer)
 	
 }
 func Cleanup(){
@@ -47,23 +48,29 @@ func Cleanup(){
 	
 }
 
-func Update_lights(inside_order bool,Queue_mask Types.Order_queue,Order_data Types.Order_queue){
+func Update_lights(inside_order bool,Queue_mask Types.Order_queue,Queue_data Types.Order_queue,local_queue_chan chan Types.Order_queue){
+		local_queue:=<-local_queue_chan
+		local_queue_chan<-local_queue
 		for i:=0; i<Types.N_FLOORS-1; i++ {
 			if Queue_mask.Outside_order_up[i]==1 {
-				state:=Order_data.Outside_order_up[i]
-				driver.Set_button_lamp(0,i,state)
+				state:=Queue_data.Outside_order_up[i]
+				if (state==0 && local_queue.Outside_order_up[i]==1)==false {
+					driver.Set_button_lamp(0,i,state)
+				}
 			}
 		}
 		for i:=1; i<Types.N_FLOORS; i++ {
 			if Queue_mask.Outside_order_down[i]==1 {
-				state:=Order_data.Outside_order_down[i]
-				driver.Set_button_lamp(1,i,state)
+				state:=Queue_data.Outside_order_down[i]
+				if (state==0 && local_queue.Outside_order_down[i]==1)==false {
+					driver.Set_button_lamp(1,i,state)
+				}
 			}
 		}
-		if inside_order {
+		if inside_order==true {
 			for i:=0; i<Types.N_FLOORS; i++ {
 				if Queue_mask.Inside_order[i]==1 {
-					state:=Order_data.Inside_order[i]
+					state:=Queue_data.Inside_order[i]
 					driver.Set_button_lamp(2,i,state)
 				}
 			}
@@ -92,30 +99,33 @@ func Update_queue(inside_order bool,state int,Order_mask Types.Order_queue, Broa
 		temp_local_queue:=local_queue
 		local_queue_chan<-local_queue
 
-		Update_lights(inside_order,Order_mask,temp_local_queue)
-		//Generate Update message Fiks dette med egen funksjon
+		Update_lights(inside_order,Order_mask,temp_local_queue,local_queue_chan)
+		
 		var msg Types.Message
 		msg.Message_type=Types.MT_update
 		msg.Data=local_queue
 		msg.Mask=Order_mask
 		Broadcast_buffer<-msg
+		
 }
-//Denne sjekker etter bestillinger på lokal heis, og sjekker bestillinger fra nettverket. 
-func Get_orders(Received_order_ch,Broadcast_buffer chan Types.Message,Queue_Network_chan chan map[string]Types.Order_queue,local_queue_chan chan Types.Order_queue,stop_chan chan int,Delete_order_ch chan Types.Order_queue){ //STILL IN PRODUCTION, how is the queue going to be
+
+func Get_orders(Received_order_ch,Broadcast_buffer chan Types.Message,Queue_Network_chan chan map[string]Types.Order_queue,local_queue_chan chan Types.Order_queue,stop_chan chan int,Delete_order_ch chan Types.Order_queue,Activity_timer_ch chan time.Time){ //STILL IN PRODUCTION, how is the queue going to be
 	outside_order_ch := make(chan [2]int)
 	inside_order_ch := make(chan int)
-	//var outside_order_array [2]int
-	//inside_order := int
-	//var msg Network.Message
+
 	go driver.Check_for_outside_order(outside_order_ch)
 	go driver.Check_for_inside_order(inside_order_ch)
 	for{
 		select{
 			case outside_order_array := <- outside_order_ch:
-				//Etasje blir aldri null for ned og 4 for oppbestillinger
+
+				
 				floor := outside_order_array[0]
 				order_type := outside_order_array[1]
 				if is_already_in_queue(floor, order_type,Queue_Network_chan,local_queue_chan)==false {
+						Activity_timer:=<-Activity_timer_ch
+						Activity_timer=time.Now()
+						Activity_timer_ch<-Activity_timer						
 						Local_order,New_Queue:=assign_order(floor,order_type,Queue_Network_chan,local_queue_chan)
 						if Local_order{
 							Update_queue(false,1,New_Queue.Mask,Broadcast_buffer,local_queue_chan)		
@@ -125,27 +135,42 @@ func Get_orders(Received_order_ch,Broadcast_buffer chan Types.Message,Queue_Netw
 						}
 				}
 			case inside_order := <- inside_order_ch:
+
 				var Order_mask Types.Order_queue
 				floor := inside_order
 				order_type := 2
 				Order_mask.Inside_order[floor]=1
 				if is_already_in_queue(floor,order_type,Queue_Network_chan,local_queue_chan)==false {
+						Activity_timer:=<-Activity_timer_ch
+						Activity_timer=time.Now()
+						Activity_timer_ch<-Activity_timer
 						Update_queue(true,1,Order_mask,Broadcast_buffer,local_queue_chan)
 				}
 		
 			case External_order:=<-Received_order_ch:
-				if External_order.Message_type==Types.MT_update { //Update 
-					Update_lights(false,External_order.Mask,External_order.Data)
+				if External_order.Message_type==Types.MT_update { //Update
+					Update_lights(false,External_order.Mask,External_order.Data,local_queue_chan)
 				}else if External_order.Message_type==Types.MT_new_order { //New order {
 					Update_queue(false,1,External_order.Mask,Broadcast_buffer,local_queue_chan)
 				}else if External_order.Message_type==Types.MT_disconnected { //Disconnected {
-					go Redistribute_orders(External_order,Broadcast_buffer,Queue_Network_chan,local_queue_chan)
+					Redistribute_orders(External_order,Broadcast_buffer,Queue_Network_chan,local_queue_chan)
 				}else if External_order.Message_type==Types.MT_new_elevator { //New elevator {
-					Update_lights(false,External_order.Mask,External_order.Data)				
+					msg:=Types.Message{Message_type:Types.MT_update}
+					local_queue:=<-local_queue_chan
+					local_queue_chan<-local_queue
+					msg.Data=local_queue
+					msg.Mask=local_queue
+					Broadcast_buffer<-msg							
+				}else if External_order.Message_type==Types.MT_out {
+					Redistribute_orders(External_order,Broadcast_buffer,Queue_Network_chan,local_queue_chan)
+					
 				}
 			case <-stop_chan:
 				<-local_queue_chan
 			case Mask:=<-Delete_order_ch:
+				Activity_timer:=<-Activity_timer_ch
+				Activity_timer=time.Now()
+				Activity_timer_ch<-Activity_timer
 				Update_queue(true,0,Mask,Broadcast_buffer,local_queue_chan)
 			}
 
@@ -182,14 +207,13 @@ func Calculate_orders_amount(Queue Types.Order_queue)(int){
 func calculate_order_cost(floor int, order_type int,Queue_n Types.Order_queue)(int){
 		Direction:=Queue_n.Moving_direction
 		Last_floor:=Queue_n.Last_floor
-		//Moving:=Queue_n.Moving
 		cost:=0
 		if Last_floor==floor && Direction==order_type  {
 			cost=-2
 		}
 		
-		if order_type==Types.BUTTON_CALL_UP&&Direction==Types.DIRN_UP { //Riktig retning{
-			if Last_floor>floor { //Kjørt forbi etasje
+		if order_type==Types.BUTTON_CALL_UP&&Direction==Types.DIRN_UP {
+			if Last_floor>floor { 
 				cost=cost+5
 			}else {
 				cost=cost+floor-Last_floor
@@ -208,18 +232,18 @@ func calculate_order_cost(floor int, order_type int,Queue_n Types.Order_queue)(i
 			cost=cost+Last_floor-floor
 		}
 		cost=cost+Calculate_orders_amount(Queue_n)+int(math.Abs(float64(Last_floor-floor)))
-		//fmt.Println("cost: ",cost)
 		return cost
 
 }
 func assign_order(floor int,order_type int,Queue_Network_chan chan map[string]Types.Order_queue,local_queue_chan chan Types.Order_queue)(bool,Types.Message){
 	temp_Queue_Network:=<-Queue_Network_chan
 	Queue_Network_chan<-temp_Queue_Network
-	var lowest_cost int
+	var lowest_cost,cost int
 	var Local bool
-	cost:=0
 	var lowest_cost_ipAddr string
 	var Queue_update Types.Message
+	
+	cost=0
 
 	local_queue:=<-local_queue_chan
 	local_queue_chan<-local_queue
@@ -252,14 +276,13 @@ func assign_order(floor int,order_type int,Queue_Network_chan chan map[string]Ty
 	return Local,Queue_update
 }
 
-//Denne endres til å ta inn floor og order_type istedenfor order_array
-//Føler at låsen her er ubrukelig
+
 func is_already_in_queue(floor int, order_type int,Queue_Network_chan chan map[string]Types.Order_queue,local_queue_chan chan Types.Order_queue) (bool) {
 	temp_Queue_Network:=<-Queue_Network_chan
 	Queue_Network_chan<-temp_Queue_Network
 	for _,Queue_n := range temp_Queue_Network {
 		if order_type==Types.BUTTON_CALL_UP&&floor!=3&&Queue_n.Outside_order_up[floor]==1 {
-			return true //Not finished
+			return true 
 		}else if order_type==Types.BUTTON_CALL_DOWN&&floor!=0&&Queue_n.Outside_order_down[floor]==1 {
 			return true
 		}
@@ -300,4 +323,21 @@ func Redistribute_orders(External_order Types.Message,Broadcast_buffer chan Type
 			}
 		}
 	}
+}
+func Activity_monitor(Activity_timer_ch chan time.Time,local_queue_chan chan Types.Order_queue,Broadcast_buffer_ch chan Types.Message){
+   msg:=Types.Message{Message_type: Types.MT_out}
+   for {
+   		Activity_timer:=<-Activity_timer_ch
+   		Activity_timer_ch<-Activity_timer
+   		if time.Now().Sub(Activity_timer)>10*time.Second && Elevator.Is_queue_empty(local_queue_chan)==false {
+   			//Send message
+	   		Activity_timer:=<-Activity_timer_ch
+			Activity_timer=time.Now()
+	   		Activity_timer_ch<-Activity_timer
+   			Broadcast_buffer_ch<-msg
+			fmt.Println("I have some problems")
+   		}
+   		time.Sleep(5*time.Second)
+   }
+
 }
