@@ -306,12 +306,13 @@ func Redistribute_orders(External_order Types.Message,Broadcast_buffer chan Type
 	}
 }
 /*func Activity_monitor(Acitivity_timer_ch chan time.Time,local_queue_chan chan Types.Order_queue,Broadcast_buffer_ch chan Types.Message){
-   
+   msg:=Types.Message{Message_type: Types.MT_out}
    for {
    		Activity_timer:=<-Activity_timer_ch
    		Activity_timer_ch<-Activity_timer
    		if Acitivity_timer.sub(time.Now())>5*time.Seconds && Elevator.is_queue_empty(local_queue_chan)==false {
    			//Send message
+   			Broadcast_buffer_ch<-msg
    		}
    		time.Sleep(10*time.Seconds)
    }

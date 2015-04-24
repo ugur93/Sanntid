@@ -127,11 +127,15 @@ func HandleNewMessage(msg Types.Message,Queue_Network_chan chan map[string]Types
 						ack_chan<-msg
 
 				}/*else if msg.Message_type ==Types.MT_out {
-
+					msg:=Types.Message{Message_type: MT_disconnected}
 					Queue_Network:=<-Queue_Network_chan
+					msg.Data=Queue_Network[ipAddr]
 					delete(Queue_Network,ipAddr)
 					Queue_Network_chan<-Queue_Network
-
+					if is_master(Queue_Network_chan) {
+						ReceiveOrderCh<-msg
+					}
+					fmt.Println(ipAddr," have some problems, taking over orders")
 				}*/
 
 }
