@@ -1,9 +1,9 @@
 package Queue_manager
 
 import "../driver"
-import "../Network"
+import "../Network_manager"
 import "../Types"
-import "../Elevator"
+import "../Elevator_controller"
 import "time"
 import "fmt"
 import "math"
@@ -31,8 +31,8 @@ func Queue_manager_init(stop_chan chan int){
 	local_queue.Moving=false
 	local_queue_chan<-local_queue
 
-	go Network.Network_Manager_init("20020",Broadcast_order,Received_order_ch,stop_chan,Queue_Network_chan)
-	go Elevator.Elevator_init(Broadcast_buffer,current_floor,local_queue_chan,Delete_order_ch)
+	go Network_manager.Network_Manager_init("20020",Broadcast_order,Received_order_ch,stop_chan,Queue_Network_chan)
+	go Elevator_controller.Elevator_init(Broadcast_buffer,current_floor,local_queue_chan,Delete_order_ch)
 	go Get_orders(Received_order_ch,Broadcast_buffer,Queue_Network_chan,local_queue_chan,stop_chan,Delete_order_ch,Activity_timer_ch)
 	go Send_orders(Broadcast_order,Broadcast_buffer)
 	go Activity_monitor(Activity_timer_ch,local_queue_chan,Broadcast_buffer)
@@ -326,7 +326,7 @@ func Activity_monitor(Activity_timer_ch chan time.Time,local_queue_chan chan Typ
    for {
    		Activity_timer:=<-Activity_timer_ch
    		Activity_timer_ch<-Activity_timer
-   		if time.Now().Sub(Activity_timer)>10*time.Second && Elevator.Is_queue_empty(local_queue_chan)==false {
+   		if time.Now().Sub(Activity_timer)>10*time.Second && Elevator_controller.Is_queue_empty(local_queue_chan)==false {
    			//Send message
 	   		Activity_timer:=<-Activity_timer_ch
 			Activity_timer=time.Now()

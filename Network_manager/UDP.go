@@ -1,4 +1,4 @@
-package Network
+package Network_manager
 
 import(
 	"fmt"
@@ -61,7 +61,6 @@ func UDP_receive(port string,receive_ch chan Types.Message){
 		panic(err)
 		fmt.Println(err)
 	}
-	//timeStart:=time.Now();
 	msg:=Types.Message{}
 	buffer:=make([]byte,1024)
 	for{	
